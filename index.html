@@ -382,31 +382,36 @@ function ensureAudio(){
 const SND=1.7;
 /* ---------- música de fundo (sintetizada, em loop) ---------- */
 const MUS={bus:null,timer:0,next:0,step:0,playing:false};
-/* tema de parque de diversão: órgão de carrossel (calíope) + baixo "um-pá" */
-const SC=[523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5,1174.66];
-const CP=[[261.63,329.63,392],[261.63,329.63,392],[349.23,440,523.25],[261.63,329.63,392],[392,493.88,587.33],[392,493.88,587.33],[261.63,329.63,392],[392,493.88,587.33]];
-const CB=[130.81,130.81,174.61,130.81,196,196,130.81,196];
-const MEL=[[0,2,4,2,4,7,4,2],[4,2,0,2,4,-1,4,-1],[3,5,7,5,3,5,7,8],[7,4,2,4,0,-1,0,-1],[4,6,8,6,4,6,8,6],[8,6,4,6,4,-1,-1,-1],[2,4,7,4,2,4,7,-1],[4,2,1,2,0,-1,-1,-1]];
-function musOsc(f,t,d,type,vol,lpf,vib){
-  const o=AC.createOscillator(), g=AC.createGain(), lp=AC.createBiquadFilter(); o.type=type; o.frequency.value=f; lp.type='lowpass'; lp.frequency.value=lpf||3000;
-  g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol,t+.015); g.gain.setValueAtTime(vol*.8,t+d*.7); g.gain.exponentialRampToValueAtTime(.0001,t+d);
-  if(vib){const l=AC.createOscillator(), lg=AC.createGain(); l.frequency.value=6; lg.gain.value=f*.012; l.connect(lg); lg.connect(o.frequency); l.start(t); l.stop(t+d+.05);}
-  o.connect(lp); lp.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d+.05);
+/* música suave: caixinha de música / harpa com pad macio, valsa lenta */
+const CHD=[[261.63,329.63,392,523.25],[220,261.63,329.63,440],[220,261.63,349.23,440],[196,246.94,293.66,392]];
+const PD=[523.25,587.33,659.25,783.99,880,1046.5];
+const MEL=[[2,-1,-1,3,-1,-1],[4,-1,3,-1,2,-1],[4,-1,-1,2,-1,-1],[3,-1,2,-1,1,-1],[0,-1,2,-1,3,-1],[4,-1,5,-1,4,-1],[3,-1,2,-1,-1,-1],[1,-1,-1,2,-1,-1]];
+function musBell(f,t,d,vol){
+  [[1,1],[2,.22]].forEach(([m,k])=>{
+    const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=f*m;
+    g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol*k,t+.012); g.gain.exponentialRampToValueAtTime(.0001,t+d/m);
+    o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d/m+.05);
+  });
+}
+function musPad(f,t,d,vol){
+  const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol,t+d*.4); g.gain.linearRampToValueAtTime(.0001,t+d);
+  o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d+.05);
 }
 function musSchedule(){
   if(!MUS.playing||!AC)return;
-  const E=60/132/2; // colcheia
-  while(MUS.next<AC.currentTime+.6){
-    const bar=Math.floor(MUS.step/8)%8, i=MUS.step%8, t=MUS.next;
-    if(i===0||i===4)musOsc(CB[bar],t,E*1.7,'triangle',.11,600);                         // um
-    if(i===2||i===6)CP[bar].forEach(f=>musOsc(f,t,E*1.1,'square',.018,1800));           // pá
-    const m=MEL[bar][i]; if(m>=0)musOsc(SC[m],t,E*(MEL[bar][(i+1)%8]<0?1.9:1.05),'square',.03,3200,true); // melodia do carrossel
+  const E=60/62; // colcheia lenta
+  while(MUS.next<AC.currentTime+.8){
+    const bar=Math.floor(MUS.step/6)%8, i=MUS.step%6, t=MUS.next, ch=CHD[bar%4];
+    if(i===0){ch.slice(0,3).forEach(f=>musPad(f/2,t,E*6.5,.03));}
+    musBell(ch[[0,1,2,3,2,1][i]],t,E*3.2,.04);                       // arpejo de harpa
+    const m=MEL[bar][i]; if(m>=0)musBell(PD[m],t+.01,E*4.5,.06);      // melodia de caixinha de música
     MUS.next+=E; MUS.step++;
   }
 }
 function musicStart(){
   if(!musicOn||MUS.playing||!AC)return;
-  if(!MUS.bus||MUS.bus.context!==AC){MUS.bus=AC.createGain(); MUS.bus.gain.value=.55; MUS.bus.connect(AC.destination);}
+  if(!MUS.bus||MUS.bus.context!==AC){MUS.bus=AC.createGain(); MUS.bus.gain.value=.5; MUS.bus.connect(AC.destination);}
   MUS.bus.gain.cancelScheduledValues(AC.currentTime); MUS.bus.gain.setValueAtTime(.0001,AC.currentTime); MUS.bus.gain.linearRampToValueAtTime(.55,AC.currentTime+2);
   MUS.playing=true; MUS.next=AC.currentTime+.1; musSchedule(); MUS.timer=setInterval(musSchedule,200);
 }
