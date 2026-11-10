@@ -388,37 +388,33 @@ function ensureAudio(){
 const SND=1.7;
 /* ---------- música de fundo (sintetizada, em loop) ---------- */
 const MUS={bus:null,timer:0,next:0,step:0,playing:false};
-/* música suave: caixinha de música / harpa com pad macio, valsa lenta */
-const CHD=[[261.63,329.63,392,523.25],[220,261.63,329.63,440],[220,261.63,349.23,440],[196,246.94,293.66,392]];
+/* música de fundo: tema leve e alegre (marimba + baixo + acordes macios), 92 bpm */
 const PD=[523.25,587.33,659.25,783.99,880,1046.5];
-const MEL=[[2,-1,-1,3,-1,-1],[4,-1,3,-1,2,-1],[4,-1,-1,2,-1,-1],[3,-1,2,-1,1,-1],[0,-1,2,-1,3,-1],[4,-1,5,-1,4,-1],[3,-1,2,-1,-1,-1],[1,-1,-1,2,-1,-1]];
-function musBell(f,t,d,vol){
-  [[1,1],[2,.22]].forEach(([m,k])=>{
-    const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=f*m;
-    g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol*k,t+.012); g.gain.exponentialRampToValueAtTime(.0001,t+d/m);
-    o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d/m+.05);
-  });
-}
-function musPad(f,t,d,vol){
-  const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=f;
-  g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol,t+d*.4); g.gain.linearRampToValueAtTime(.0001,t+d);
+const CHD=[[261.63,329.63,392],[246.94,293.66,392],[220,261.63,329.63],[220,261.63,349.23]];
+const ROOT=[130.81,196,220,174.61];
+const MEL=[[2,-1,3,2,0,-1,2,-1],[1,-1,0,1,3,-1,1,-1],[4,-1,3,2,3,-1,4,-1],[3,-1,2,0,2,-1,0,-1],[2,-1,3,4,5,-1,4,3],[3,-1,1,0,1,-1,3,-1],[4,3,2,0,2,3,4,-1],[3,-1,2,-1,0,-1,-1,-1]];
+function musTone(f,t,d,type,vol,atk){
+  const o=AC.createOscillator(), g=AC.createGain(); o.type=type; o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol,t+(atk||.01)); g.gain.exponentialRampToValueAtTime(.0001,t+d);
   o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d+.05);
 }
+function musMarimba(f,t,d,vol){ musTone(f,t,d,'sine',vol,.006); musTone(f*4,t,d*.25,'sine',vol*.25,.003); musTone(f*2,t,d*.5,'triangle',vol*.3,.004); }
 function musSchedule(){
   if(!MUS.playing||!AC)return;
-  const E=60/62; // colcheia lenta
-  while(MUS.next<AC.currentTime+.8){
-    const bar=Math.floor(MUS.step/6)%8, i=MUS.step%6, t=MUS.next, ch=CHD[bar%4];
-    if(i===0){ch.slice(0,3).forEach(f=>musPad(f/2,t,E*6.5,.03));}
-    musBell(ch[[0,1,2,3,2,1][i]],t,E*3.2,.04);                       // arpejo de harpa
-    const m=MEL[bar][i]; if(m>=0)musBell(PD[m],t+.01,E*4.5,.06);      // melodia de caixinha de música
+  const E=60/92/2;
+  while(MUS.next<AC.currentTime+.6){
+    const bar=Math.floor(MUS.step/8)%8, i=MUS.step%8, t=MUS.next, c=bar%4;
+    if(i===0||i===4)musTone(ROOT[c],t,E*3,'triangle',.13,.01);                              // baixo
+    if(i===2||i===6)CHD[c].forEach(f=>musTone(f,t,E*1.6,'triangle',.035,.01));              // acordes
+    if(i===0)CHD[c].forEach(f=>musTone(f/2,t,E*7.5,'sine',.03,.5));                         // pad macio
+    const m=MEL[bar][i]; if(m>=0)musMarimba(PD[m],t,E*2.6,.11);                              // melodia
     MUS.next+=E; MUS.step++;
   }
 }
 function musicStart(){
   if(!musicOn||MUS.playing||!AC)return;
-  if(!MUS.bus||MUS.bus.context!==AC){MUS.bus=AC.createGain(); MUS.bus.gain.value=.5; MUS.bus.connect(AC.destination);}
-  MUS.bus.gain.cancelScheduledValues(AC.currentTime); MUS.bus.gain.setValueAtTime(.0001,AC.currentTime); MUS.bus.gain.linearRampToValueAtTime(.55,AC.currentTime+2);
+  if(!MUS.bus||MUS.bus.context!==AC){MUS.bus=AC.createGain(); MUS.bus.gain.value=.8; MUS.bus.connect(AC.destination);}
+  MUS.bus.gain.cancelScheduledValues(AC.currentTime); MUS.bus.gain.setValueAtTime(.0001,AC.currentTime); MUS.bus.gain.linearRampToValueAtTime(.8,AC.currentTime+2);
   MUS.playing=true; MUS.next=AC.currentTime+.1; musSchedule(); MUS.timer=setInterval(musSchedule,200);
 }
 function musicStop(){
