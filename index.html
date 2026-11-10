@@ -58,7 +58,7 @@ body{background-color:var(--bg); background-image:linear-gradient(rgba(6,22,34,.
 .map .bar img.m{width:34px; height:34px; object-fit:contain}
 .map .bar .btn{min-height:40px; padding:6px 14px}
 .mapscroll{flex:1; width:100%; overflow-y:auto; overflow-x:hidden; background:#0b2530; -webkit-overflow-scrolling:touch}
-.mapscroll svg{display:block; width:min(100%,480px); margin-inline:auto; height:auto}
+.mapscroll svg{display:block; width:min(100%,calc(480px*var(--ui))); margin-inline:auto; height:auto}
 #mapToast{position:absolute; left:50%; bottom:92px; transform:translateX(-50%); z-index:20; background:#fff; color:#17323a; font:800 15px var(--font-body); padding:10px 18px; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.4); max-width:88%; text-align:center; pointer-events:none}
 .mapscroll,.mapscroll *{-webkit-tap-highlight-color:transparent; outline:none; -webkit-user-select:none; user-select:none}
 .node{cursor:pointer}
@@ -81,6 +81,10 @@ body{
   padding-right:max(16px,env(safe-area-inset-right,0px));
   -webkit-tap-highlight-color:transparent;
 }
+:root{--ui:1}
+#scrGame{zoom:var(--ui)}
+.rcard{zoom:var(--ui)}
+.map .bar,.map .foot{zoom:var(--ui)}
 .app{max-width:480px; margin-inline:auto; display:flex; flex-direction:column; gap:12px}
 .top{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .brand{display:flex; align-items:center; gap:8px; min-width:0; flex:1}
@@ -1733,6 +1737,11 @@ $('btnSound').setAttribute('aria-pressed',String(soundOn));
 $('btnSound').setAttribute('aria-label',soundOn?'Som ligado':'Som desligado');
 readTokens();
 resize();
+function fitUI(){
+  const ui=Math.max(1,Math.min((innerWidth-32)/480,innerHeight/930,2.4));
+  document.documentElement.style.setProperty('--ui',(ui<1.06?1:ui).toFixed(3));
+}
+fitUI(); window.addEventListener('resize',()=>{fitUI(); try{resize();}catch(e){}});
 drawLegend();
 if('ResizeObserver' in window){new ResizeObserver(()=>resize()).observe($('stage'));}
 else window.addEventListener('resize',resize);
