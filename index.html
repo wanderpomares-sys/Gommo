@@ -145,7 +145,7 @@ canvas#cv{display:block; width:100%; height:auto; aspect-ratio:1/1; touch-action
 .rstar{width:38px; height:38px; fill:none; stroke:var(--muted); stroke-width:1.6; stroke-linejoin:round}
 .rstar.on{fill:var(--gold); stroke:#B9780B}
 .ov-actions{display:grid; gap:8px; margin-top:6px}
-.res{position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:14px; overflow-y:auto; background:radial-gradient(circle at 50% 30%,rgba(14,70,88,.86),rgba(3,14,22,.95)); backdrop-filter:blur(3px)}
+.res{position:fixed; inset:0; z-index:50; display:grid; place-items:safe center; padding:14px; overflow-y:auto; background:radial-gradient(circle at 50% 30%,rgba(14,70,88,.86),rgba(3,14,22,.95)); backdrop-filter:blur(3px)}
 #conf{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
 .rcard{position:relative; width:min(100%,360px); display:grid; gap:8px; justify-items:center; text-align:center; color:#fff}
 .rrib{position:relative; width:100%; animation:ribin .65s cubic-bezier(.2,1.5,.4,1) both}
@@ -380,6 +380,18 @@ html{font-synthesis-weight:none}
 .tut-bub::before{content:""; position:absolute; left:-12px; top:50%; width:18px; height:18px; margin-top:-9px; background:#fff; border-left:4px solid #2E8FA0; border-bottom:4px solid #2E8FA0; transform:rotate(45deg)}
 .tut-txt{font:800 17px/1.25 var(--font-display); color:#17323b; position:relative}
 .tut-txt u{text-decoration:none; color:#E5702A}
+
+.res.goal .rstars{display:none}
+.res.goal .rcard{gap:6px}
+.res.goal .rrib{width:min(100%,300px)}
+.res.goal .rmasc{width:auto; height:clamp(70px,15dvh,130px); margin-top:0}
+.res.goal .obj-tag{margin:0 auto 2px; font-size:22px; padding:5px 18px}
+.res.goal .rpill.goalp{padding:4px 14px 4px 5px}
+.res.goal .rpill.goalp img{width:36px; height:36px}
+.res.goal .rpill.newp{margin-top:2px; padding:8px 14px; font-size:16px}
+.res.goal .btn.go{min-height:58px}
+.res.goal .rrow .btn{min-height:44px}
+@media (max-height:760px){.res.goal .rrib{width:min(100%,240px)} .res.goal .rpill.newp{font-size:15px}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -2254,7 +2266,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v52';
+const APP_VER='v53';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
