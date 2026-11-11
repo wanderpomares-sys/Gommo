@@ -250,6 +250,24 @@ html{font-synthesis-weight:none}
 .actions{gap:10px}
 .actions .btn{flex-direction:column; gap:3px; min-height:66px; font-size:17px; padding:8px 6px}
 .actions .btn .ic{width:30px; height:30px}
+
+/* ===== chips de meta: medalhão + número grande + rótulo ===== */
+.goals{gap:10px}
+.goals .chip{flex:1 1 0; min-width:0; justify-content:flex-start; gap:10px; padding:7px 12px 7px 8px; border-radius:22px; border:2px solid rgba(232,182,74,.8); background:linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,.4)); box-shadow:inset 0 2px 6px rgba(0,0,0,.35),0 2px 0 rgba(255,255,255,.08); font:inherit}
+.goals .chip.only,.goals .chip:only-child{justify-content:center; padding:8px 20px 8px 10px}
+.cico{width:52px; height:52px; flex:none; display:grid; place-items:center; border-radius:50%; background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.4),rgba(255,255,255,.08) 70%); border:2px solid rgba(255,255,255,.35); box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.cico img{width:40px; height:40px; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.ctx{display:flex; flex-direction:column; min-width:0; line-height:1}
+.ctx b{font:800 32px/1 var(--font-display); color:#FFE08A; -webkit-text-stroke:4px rgba(5,30,40,.95); paint-order:stroke fill; text-shadow:0 3px 0 rgba(0,0,0,.3); font-variant-numeric:tabular-nums; letter-spacing:.01em}
+.ctx small{font:800 13px/1.15 var(--font-body) !important; opacity:1 !important; text-transform:uppercase; letter-spacing:.1em; color:#CFEFF3; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.goals .chip.done{background:linear-gradient(180deg,#3FC06E,#228B4B); border-color:#B6F2C8}
+.goals .chip.done .ctx b{color:#fff; -webkit-text-stroke-color:#10502a}
+.goals .chip.done .ctx small{color:#E6FFEE}
+.goals .chip:not(:only-child){gap:6px; padding:6px 8px 6px 6px; overflow:hidden}
+.goals .chip:not(:only-child) .cico{width:42px; height:42px}
+.goals .chip:not(:only-child) .cico img{width:32px; height:32px}
+.goals .chip:not(:only-child) .ctx b{font-size:27px; -webkit-text-stroke-width:3.5px}
+.goals .chip:not(:only-child) .ctx small{font-size:12px; letter-spacing:.07em}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -844,9 +862,9 @@ function icoOf(g){
 function chipsHtml(){
   return goals.map(g=>{
     const rem=remOf(g), done=rem===0;
-    const unit=g.k==='score'?' pts':g.k==='ice'?' gelo':g.k==='crate'?' caixas':g.k==='drop'?' estrelas':g.k==='spec'?' especiais':'';
-    const txt=done?'✓':(g.k==='score'?rem.toLocaleString('pt-BR'):String(rem));
-    return '<span class="chip'+(done?' done':'')+'"><img alt="" src="'+icoOf(g)+'"><b>'+txt+'</b>'+(done?'':'<small style="font:700 12px var(--font-body);opacity:.7">'+unit+'</small>')+'</span>';
+    const lab=g.k==='score'?'pontos':g.k==='ice'?(rem===1?'gelo':'gelos'):g.k==='crate'?(rem===1?'caixa':'caixas'):g.k==='drop'?(rem===1?'estrela':'estrelas'):g.k==='spec'?(rem===1?'especial':'especiais'):(GEMNAME[g.t]||'gemas');
+    const num=done?'✓':(g.k==='score'?rem.toLocaleString('pt-BR'):String(rem));
+    return '<span class="chip'+(done?' done':'')+'"><span class="cico"><img alt="" src="'+icoOf(g)+'"></span><span class="ctx"><b>'+num+'</b><small>'+(done?'feito!':lab)+'</small></span></span>';
   }).join('');
 }
 function goalSummary(){return goals.filter(g=>remOf(g)>0).map(g=>goalLabel(g,remOf(g))).join(', ');}
