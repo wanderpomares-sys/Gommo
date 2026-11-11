@@ -1012,13 +1012,13 @@ function buildSpec(L){
   } else {
     const q=pickSeq(L), cyc=[2,1,0,-2,1][(L-1)%5];
     const colors=(L%5===4)?6:5;
-    let moves=18+Math.min(6,Math.floor(L/6))+cyc;
+    let moves=19+Math.min(6,Math.floor(L/6))+cyc;
     const A=q.arch, mix=A.indexOf('+')>=0;
     const k=mix?0.7:1;
     sp={shape:q.shape,colors,moves,goals:[],bonus:false,crates:[],ice:[]};
-    const gemN=Math.round(Math.min(24,14+Math.floor(L/3))*k);
+    const gemN=Math.round(Math.min(22,13+Math.floor(L/3))*k);
     const crN=Math.round(Math.min(16,5+Math.floor(L/5))*(mix?0.8:1));
-    const sc=Math.round(Math.min(5500,900+L*130)*(mix?0.7:1)/100)*100;
+    const sc=Math.round(Math.min(4600,700+L*105)*(mix?0.72:1)/100)*100;
     const parts=A.split('+');
     for(const p of parts){
       if(p==='score')sp.goals.push({k:'score',n:sc});
@@ -1029,6 +1029,7 @@ function buildSpec(L){
       else if(p==='crate'){sp.crates=crateCells(crN,q.shape,r); sp.goals.push({k:'crate',n:sp.crates.length});}
       else if(p==='ice'){let cells=iceCells(q.pat,q.shape); if(cells.length<6)cells=iceCells('centro',q.shape); sp.ice=cells; sp.goals.push({k:'ice',n:0});}
     }
+    if(A==='score')sp.moves+=3;
     if(A.indexOf('crate')>=0||A.indexOf('ice')>=0)sp.moves+=2;
     if(A.indexOf('drop')>=0)sp.moves+=6;
     if(A.indexOf('spec')>=0)sp.moves+=4;
@@ -2285,7 +2286,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v54';
+const APP_VER='v55';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
