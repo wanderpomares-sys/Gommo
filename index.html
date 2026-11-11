@@ -360,22 +360,26 @@ html{font-synthesis-weight:none}
 .btn.go.gold{border-color:#9a6200; background:linear-gradient(#FFE08A 0%,#FFB627 50%,#F08F10 100%); box-shadow:0 6px 0 #8a5a08,0 12px 20px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.7); -webkit-text-stroke:4px #7a3f00; animation:none}
 .wel-note{font:700 14px/1.3 var(--font-body); color:#CFEFF3; text-align:center}
 
-.tut{position:fixed; inset:0; z-index:84; display:grid; place-items:center; padding:14px; background:rgba(8,28,44,.72); backdrop-filter:blur(3px)}
+.tut{position:fixed; inset:0; z-index:84; display:grid; place-items:center; padding:12px; background:rgba(8,28,44,.78); backdrop-filter:blur(3px); overflow:auto}
 .tut[hidden]{display:none}
-.tut-card{width:min(100%,400px); display:grid; gap:10px; justify-items:center; zoom:var(--ui); animation:tutin .35s cubic-bezier(.2,1.3,.4,1)}
-@keyframes tutin{from{transform:scale(.8) translateY(20px); opacity:0}to{transform:none; opacity:1}}
-.tut-rib{background:linear-gradient(#FFE08A,#FFB627); color:#4a2a00; border:3px solid #9a6200; border-radius:16px; padding:6px 22px; font:800 24px/1.1 var(--font-display); box-shadow:0 5px 0 #8a5a08; text-align:center}
-.tut-box{position:relative; width:100%; background:#fff; color:#17323b; border:4px solid #2E8FA0; border-radius:26px; padding:14px 14px 16px; display:grid; gap:10px; text-align:center; box-shadow:0 6px 0 rgba(10,60,80,.35)}
-.tut-demo{display:flex; align-items:center; justify-content:center; gap:4px}
-.tut-demo figure{margin:0; display:grid; gap:4px; justify-items:center; width:30%}
-.tut-demo canvas{width:100%; max-width:104px; aspect-ratio:1; background:linear-gradient(#E4F6FA,#BFE6EE); border-radius:16px; border:3px solid #7CC3D1}
-.tut-demo figcaption{font:800 13px/1.15 var(--font-display); color:#0F6B7E}
-.tut-demo .ar{font:800 26px/1 var(--font-display); color:#E5702A; flex:none}
-.tut-txt{font:800 19px/1.25 var(--font-display); color:#17323b}
+.tut-card{width:min(100%,380px); display:grid; gap:10px; justify-items:center; zoom:var(--ui); animation:tutin .35s cubic-bezier(.2,1.3,.4,1)}
+@keyframes tutin{from{transform:scale(.85) translateY(20px); opacity:0}to{transform:none; opacity:1}}
+.tut-rib{background:linear-gradient(#FFE08A,#FFB627); color:#4a2a00; border:3px solid #9a6200; border-radius:16px; padding:6px 24px; font:800 26px/1.1 var(--font-display); box-shadow:0 5px 0 #8a5a08; text-align:center}
+.tut-box{width:100%; background:#0f4a63; border:4px solid #E8B64A; border-radius:26px; padding:10px; display:grid; gap:8px; box-shadow:0 8px 0 rgba(0,0,0,.35)}
+.tut-cv{width:100%; aspect-ratio:1; display:block; border-radius:18px}
+.tut-step{display:flex; align-items:center; justify-content:center; gap:10px; min-height:52px}
+.tut-dots{display:flex; gap:5px}
+.tut-dots i{width:11px; height:11px; border-radius:50%; background:rgba(255,255,255,.25); border:2px solid rgba(255,255,255,.5)}
+.tut-dots i.on{background:#FFC531; border-color:#fff}
+#tutCap{font:800 20px/1.1 var(--font-display); color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.4)}
+#tutCap.pop{animation:tcap .35s ease-out}
+@keyframes tcap{from{transform:scale(.7); opacity:0}to{transform:none; opacity:1}}
+.tut-row{display:flex; align-items:center; gap:8px; width:100%}
+.tut-gm{width:min(26vw,96px); height:auto; flex:none; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); animation:instbob 2.2s ease-in-out infinite}
+.tut-bub{position:relative; flex:1; background:#fff; border:4px solid #2E8FA0; border-radius:20px; padding:10px 12px; box-shadow:0 4px 0 rgba(10,60,80,.35)}
+.tut-bub::before{content:""; position:absolute; left:-12px; top:50%; width:18px; height:18px; margin-top:-9px; background:#fff; border-left:4px solid #2E8FA0; border-bottom:4px solid #2E8FA0; transform:rotate(45deg)}
+.tut-txt{font:800 17px/1.25 var(--font-display); color:#17323b; position:relative}
 .tut-txt u{text-decoration:none; color:#E5702A}
-.tut-gm{width:min(34vw,120px); height:auto; margin-top:-6px; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); animation:instbob 2.2s ease-in-out infinite}
-.tut-top{display:flex; align-items:flex-end; gap:6px; width:100%}
-.tut-top .tut-box{flex:1}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -498,10 +502,13 @@ html{font-synthesis-weight:none}
   <div class="tut-card">
     <div class="tut-rib" id="tutT"></div>
     <div class="tut-box">
-      <div class="tut-demo" id="tutDemo"></div>
-      <div class="tut-txt" id="tutTxt"></div>
+      <canvas id="tutCv" class="tut-cv" width="600" height="600"></canvas>
+      <div class="tut-step"><span class="tut-dots" id="tutDots"><i></i><i></i><i></i></span><b id="tutCap"></b></div>
     </div>
-    <img class="tut-gm" id="tutGm" alt="">
+    <div class="tut-row">
+      <img class="tut-gm" id="tutGm" alt="">
+      <div class="tut-bub"><div class="tut-txt" id="tutTxt"></div></div>
+    </div>
     <button type="button" class="btn go" id="tutOk"><span>Entendi!</span></button>
   </div>
 </div>
@@ -1737,33 +1744,204 @@ function showGoal(){
   r.hidden=false; r.scrollTop=0;
 }
 
-/* ---------- janelinhas "como funciona" ---------- */
+/* ---------- janelinhas "como funciona": mini-tabuleiro animado ---------- */
+const TG0=[[0,1,2,3,4],[3,4,0,1,2],[1,2,3,4,0],[4,0,1,2,3],[2,3,4,0,1]];
 const TUTS={
-  stripe:{t:'Peça listrada',txt:'Junte <u>4 gemas</u> iguais em linha e nasce uma peça listrada. Use ela e <u>limpa a linha ou coluna inteira</u>!',
-    steps:[{cap:'4 em linha',d:g=>{for(let i=0;i<4;i++)dg(g,3,null,i,0,4)}},{cap:'Peça listrada',d:g=>dg(g,3,'h',0,0,1)},{cap:'Limpa tudo!',d:g=>{g.fillStyle='rgba(255,255,255,.9)'; g.fillRect(0,g.H*.42,g.W,g.H*.16); for(let i=0;i<5;i++)dg(g,i%6,null,i,0,5,.5)}}]},
-  bomb:{t:'Bomba',txt:'Junte gemas em <u>L ou T</u> e aparece uma bomba. Quando usada, <u>explode tudo em volta</u>!',
-    steps:[{cap:'Formato L ou T',d:g=>{[[0,0],[1,0],[2,0],[2,1],[2,2]].forEach(p=>dg(g,0,null,p[0],p[1],3))}},{cap:'Bomba',d:g=>dg(g,0,'bomb',0,0,1)},{cap:'Boom!',d:g=>{g.fillStyle='rgba(255,200,80,.55)'; g.beginPath(); g.arc(g.W/2,g.H/2,g.W*.42,0,7); g.fill(); for(let r=0;r<3;r++)for(let c=0;c<3;c++)dg(g,(r+c)%5,null,c,r,3,.8)}}]},
-  color:{t:'Gema arco-íris',txt:'Junte <u>5 em linha</u> para criar a gema arco-íris. Troque ela com uma gema e <u>some todas dessa cor</u> do tabuleiro!',
-    steps:[{cap:'5 em linha',d:g=>{for(let i=0;i<5;i++)dg(g,4,null,i,0,5)}},{cap:'Arco-íris',d:g=>dg(g,-1,'color',0,0,1)},{cap:'Some uma cor!',d:g=>{[[0,0],[2,0],[1,1],[0,2],[2,2]].forEach(p=>dg(g,2,null,p[0],p[1],3)); g.fillStyle='rgba(255,255,255,.75)'; [[.2,.2],[.8,.3],[.5,.55],[.25,.8],[.8,.85]].forEach(p=>{g.beginPath(); g.arc(g.W*p[0],g.H*p[1],5,0,7); g.fill();})}}]},
-  combo:{t:'Combos especiais',txt:'Troque <u>duas peças especiais</u> de lugar e o efeito fica <u>ainda maior</u>! Teste: arco-íris + listrada, bomba + bomba...',
-    steps:[{cap:'Listrada',d:g=>dg(g,1,'v',0,0,1)},{cap:'Bomba',d:g=>dg(g,0,'bomb',0,0,1)},{cap:'Mega efeito!',d:g=>{g.fillStyle='rgba(255,200,80,.6)'; g.fillRect(g.W*.38,0,g.W*.24,g.H); g.fillRect(0,g.H*.38,g.W,g.H*.24); dg(g,0,'bomb',0,0,1,.7)}}]},
+  stripe:{t:'Peça listrada',txt:'Junte <u>4 gemas</u> iguais em linha e nasce uma <u>peça listrada</u>. Ela limpa a <u>linha ou coluna inteira</u>!',
+    caps:['Troque as gemas','Nasce a peça listrada!','Toque e limpa a linha!'],
+    mods:[[2,0,0],[2,1,0],[2,3,0],[2,4,4]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2],[2,3]],spawn:[2,2,'h'],eff:'row'},
+  bomb:{t:'Bomba',txt:'Junte gemas em <u>L ou T</u> e aparece uma <u>bomba</u>. Ela <u>explode tudo em volta</u>!',
+    caps:['Troque as gemas','Nasce a bomba!','Boom! Explode em volta!'],
+    mods:[[0,2,0],[2,0,0],[2,1,0],[2,3,0]],swap:[[2,2],[2,3]],match:[[0,2],[1,2],[2,2],[2,0],[2,1]],spawn:[2,2,'bomb'],eff:'bomb'},
+  color:{t:'Gema arco-íris',txt:'Junte <u>5 em linha</u> para criar a <u>gema arco-íris</u>. Troque ela com uma gema e <u>somem todas dessa cor</u>!',
+    caps:['Troque as gemas','Nasce a gema arco-íris!','Troque com uma cor e some tudo!'],
+    mods:[[2,0,4],[2,1,4],[2,3,4],[2,4,4],[1,2,4]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2],[2,3],[2,4]],spawn:[2,2,'color'],eff:'color',tapTo:[3,2]},
+  combo:{t:'Combos especiais',txt:'Troque <u>duas peças especiais</u> de lugar e o efeito fica <u>muito maior</u>!',
+    caps:['Junte duas especiais','Troque uma com a outra','Mega explosão!'],
+    cells:[[2,1,3,'h'],[2,2,0,'bomb']],swap:[[2,1],[2,2]],src:[2,2],eff:'cross3',capMap:{hint:0,swap:1,hold:1,eff:2,fall2:2,end:2}},
   ice:{t:'Gelo',txt:'Gemas <u>congeladas</u>! Combine a gema que está no gelo para <u>quebrar o gelo</u>.',
-    steps:[{cap:'Gema no gelo',d:g=>{dg(g,3,null,0,0,1); iceOv(g)}},{cap:'Combine ela',d:g=>{for(let i=0;i<3;i++)dg(g,3,null,i,0,3); iceOv(g,.45)}},{cap:'Gelo quebrado!',d:g=>dg(g,3,null,0,0,1)}]},
+    caps:['Troque as gemas','Combine a gema no gelo','O gelo quebrou!'],
+    mods:[[2,0,0],[2,1,0]],ice:[[2,0],[2,1],[2,2]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2]]},
   crate:{t:'Caixa',txt:'As caixas não se mexem. Combine gemas <u>do lado delas</u> para quebrar!',
-    steps:[{cap:'Caixa',d:g=>dg(g,-2,null,0,0,1)},{cap:'Combine ao lado',d:g=>{dg(g,-2,null,0,1,3); dg(g,1,null,1,1,3); dg(g,1,null,2,1,3); dg(g,1,null,1,0,3)}},{cap:'Caixa quebrada!',d:g=>{g.fillStyle='rgba(255,255,255,.8)'; for(let i=0;i<6;i++){g.beginPath(); g.arc(g.W*(.25+.1*i),g.H*(.3+.08*(i%3)),5,0,7); g.fill();}}}]},
+    caps:['Troque as gemas','Combine ao lado da caixa','A caixa quebrou!'],
+    mods:[[2,0,0],[2,1,0],[2,3,-2]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2]],crate:[2,3]},
   drop:{t:'Estrela',txt:'Leve as estrelas <u>até o fundo</u> do tabuleiro: combine as gemas de baixo para ela descer!',
-    steps:[{cap:'Estrela no alto',d:g=>dg(g,-3,null,0,0,1)},{cap:'Combine embaixo',d:g=>{dg(g,-3,null,1,0,3); dg(g,2,null,1,1,3); dg(g,2,null,1,2,3)}},{cap:'Chegou ao fundo!',d:g=>{dg(g,-3,null,1,2,3); g.fillStyle='rgba(255,255,255,.8)'; for(let i=0;i<5;i++){g.beginPath(); g.arc(g.W*(.2+.15*i),g.H*.2,4,0,7); g.fill();}}}]}
+    caps:['Troque as gemas','Combine embaixo da estrela','A estrela chegou ao fundo!'],
+    mods:[[4,0,0],[4,1,0],[4,3,0],[3,2,-3]],swap:[[4,2],[4,3]],match:[[4,0],[4,1],[4,2]],star:1}
 };
-/* desenha uma gema em grade n x n dentro do canvas de demonstração */
-function dg(g,type,sp,c,r,n,al){
-  let x,y,w;
-  if(n===1){w=g.W*.72; x=(g.W-w)/2; y=(g.H-w)/2;}
-  else{w=g.W/n; x=c*w; y=(g.H-w*(n===3?3:1))/2+r*w;}
-  const prev=g.globalAlpha; g.globalAlpha=al||1;
-  try{g.drawImage(makeSprite(type,sp,Math.ceil(w*2)),x,y,w,w);}catch(e){}
-  g.globalAlpha=prev;
+let tutTok=0, tutIdx=-1;
+const TSP=new Map();
+function tspr(ty,sp,S){const k=ty+'|'+(sp||'')+'|'+S; let c=TSP.get(k); if(!c){c=makeSprite(ty,sp,S); TSP.set(k,c);} return c;}
+function tEase(p){return p<0?0:p>1?1:p*p*(3-2*p);}
+function tBack(p){p=Math.max(0,Math.min(1,p)); const c=1.9; return 1+(c+1)*Math.pow(p-1,3)+c*Math.pow(p-1,2);}
+let tRnd=0; function tNewTy(){tRnd=(tRnd*7+3)%5; return tRnd;}
+function tClear(G,set){ // gravidade + reposição; G[r][c] = célula ou null
+  const N5=5, out=[...Array(N5)].map(()=>Array(N5).fill(null)), moves=[], gone=[];
+  for(let c=0;c<N5;c++){
+    let w=N5-1;
+    for(let r=N5-1;r>=0;r--){
+      const cell=G[r][c]; if(!cell)continue;
+      if(set.has(r+','+c)){gone.push({cell,r,c});continue;}
+      out[w][c]=cell; moves.push({cell,fr:r,tr:w,c}); w--;
+    }
+    let k=1; for(;w>=0;w--){const cell={ty:tNewTy(),sp:null}; out[w][c]=cell; moves.push({cell,fr:-k,tr:w,c,fresh:1}); k++;}
+  }
+  return {G:out,moves,gone};
 }
-function iceOv(g,a){g.fillStyle='rgba(190,235,255,'+(a||.55)+')'; g.fillRect(2,2,g.W-4,g.H-4); g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=3; g.strokeRect(3,3,g.W-6,g.H-6);}
+function tutBuild(T){
+  const N5=5, ty=TG0.map(r=>r.slice());
+  (T.mods||[]).forEach(m=>{ty[m[0]][m[1]]=m[2];});
+  const G0=ty.map(r=>r.map(v=>({ty:v,sp:null})));
+  (T.cells||[]).forEach(m=>{G0[m[0]][m[1]]={ty:m[2],sp:m[3]};});
+  const ice=new Set((T.ice||[]).map(p=>p.join(',')));
+  const A=T.swap[0], B=T.swap[1];
+  const G1=G0.map(r=>r.slice()); const tmp=G1[A[0]][A[1]]; G1[A[0]][A[1]]=G1[B[0]][B[1]]; G1[B[0]][B[1]]=tmp;
+  const X={T,G0,G1,A,B,ice,segs:[]};
+  let cur=G1;
+  if(T.match){
+    const set=new Set(T.match.map(p=>p.join(',')));
+    if(T.spawn){
+      const sp=T.spawn, old=G1[sp[0]][sp[1]]; X.spawnOld=old; X.spawnCell={ty:sp[2]==='color'?-1:old.ty,sp:sp[2]};
+      set.delete(sp[0]+','+sp[1]); X.spawnPos=[sp[0],sp[1]];
+      X.G1b=G1.map(r=>r.slice()); X.G1b[sp[0]][sp[1]]=X.spawnCell;
+    } else X.G1b=G1;
+    if(T.crate)set.add(T.crate.join(',')); X.mset=set; X.a1=tClear(X.G1b,set); cur=X.a1.G;
+  }
+  X.G2=cur;
+  if(T.eff){
+    let sr,sc2;
+    if(T.src){sr=T.src[0]; sc2=T.src[1]; }
+    else{ outer:for(let r=0;r<N5;r++)for(let c=0;c<N5;c++){const q=cur[r][c]; if(q===X.spawnCell){sr=r;sc2=c;break outer;}} }
+    X.src=[sr,sc2]; const e=new Set(), add=(r,c)=>{if(r>=0&&r<N5&&c>=0&&c<N5)e.add(r+','+c);};
+    if(T.eff==='row')for(let c=0;c<N5;c++)add(sr,c);
+    else if(T.eff==='bomb')for(let r=sr-1;r<=sr+1;r++)for(let c=sc2-1;c<=sc2+1;c++)add(r,c);
+    else if(T.eff==='color'){const tg=cur[T.tapTo[0]][T.tapTo[1]].ty; for(let r=0;r<N5;r++)for(let c=0;c<N5;c++)if(cur[r][c].ty===tg)add(r,c); add(sr,sc2); X.tgt=T.tapTo;}
+    else if(T.eff==='cross3'){for(let r=sr-1;r<=sr+1;r++)for(let c=0;c<N5;c++)add(r,c); for(let c=sc2-1;c<=sc2+1;c++)for(let r=0;r<N5;r++)add(r,c);}
+    X.eset=e; X.a2=tClear(cur,e);
+  }
+  const D={hint:1.5,swap:.55,pop:.65,fall:.6,hold:1.4,eff:.95,fall2:.65,end:1.5};
+  const order=['hint','swap']; if(T.match)order.push('pop','fall'); if(T.eff)order.push('hold','eff','fall2'); order.push('end');
+  let t0=0; order.forEach(n=>{X.segs.push({n,t0,d:D[n]}); t0+=D[n];}); X.total=t0;
+  return X;
+}
+function tutDraw(g,X,t,W){
+  const cs=W/5, N5=5, S=Math.ceil(cs*1.1);
+  g.clearRect(0,0,W,W);
+  // fundo do tabuleiro
+  rrPath(g,0,0,W,W,22); const bg=g.createLinearGradient(0,0,0,W); bg.addColorStop(0,'#1d6b86'); bg.addColorStop(1,'#124a63'); g.fillStyle=bg; g.fill();
+  for(let r=0;r<N5;r++)for(let c=0;c<N5;c++){ if((r+c)%2===0){g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(c*cs,r*cs,cs,cs);} }
+  let seg=X.segs[X.segs.length-1]; for(const q of X.segs){if(t>=q.t0&&t<q.t0+q.d){seg=q;break;}}
+  const p=Math.min(1,(t-seg.t0)/seg.d), n=seg.n, T=X.T;
+  const cx=(c)=>(c+.5)*cs, cy=(r)=>(r+.5)*cs;
+  const items=[]; // {cell,r,c,s,a,dx}
+  const place=(G,fn)=>{for(let r=0;r<N5;r++)for(let c=0;c<N5;c++){const cell=G[r][c]; if(cell){const o={cell,r,c,s:1,a:1}; if(fn)fn(o,r,c); items.push(o);}}};
+  const overlays=[]; let iceA=1;
+  const isIce=(r,c)=>X.ice.has(r+','+c);
+  let hand=null;
+  const pulse=1+.07*Math.sin(t*9);
+  const A=X.A,B=X.B;
+  if(n==='hint'){
+    place(X.G0,(o,r,c)=>{ if((r===A[0]&&c===A[1])||(r===B[0]&&c===B[1]))o.s=pulse; });
+    const hp=tEase(Math.min(1,Math.max(0,(p-.25)/.55)));
+    hand={r:A[0]+(B[0]-A[0])*hp, c:A[1]+(B[1]-A[1])*hp, tap:p<.25?p/.25:0, down:p>=.2};
+  } else if(n==='swap'){
+    const e=tEase(p);
+    place(X.G0,(o,r,c)=>{ if(r===A[0]&&c===A[1]){o.r=A[0]+(B[0]-A[0])*e; o.c=A[1]+(B[1]-A[1])*e;} else if(r===B[0]&&c===B[1]){o.r=B[0]+(A[0]-B[0])*e; o.c=B[1]+(A[1]-B[1])*e;} });
+    hand={r:B[0],c:B[1],tap:0,down:true,fade:1-p};
+  } else if(n==='pop'){
+    place(X.G1b,(o,r,c)=>{
+      const k=r+','+c;
+      if(X.mset.has(k)){o.s=1+.45*tEase(p); o.a=1-tEase(p);}
+      if(X.spawnPos&&r===X.spawnPos[0]&&c===X.spawnPos[1]){o.s=p<.35?1+.1*p:.4+.75*tBack((p-.35)/.65); }
+    });
+    if(T.crate){const q=X.G1b[T.crate[0]][T.crate[1]]; /* caixa quebra: some com tremor */ items.forEach(o=>{if(o.cell===q){o.a=1-tEase(p); o.s=1+.25*p; o.dx=Math.sin(p*40)*.06;}});}
+    X.mset.forEach(k=>{const [r,c]=k.split(',').map(Number); overlays.push({k:'burst',x:cx(c),y:cy(r),p});});
+    if(X.spawnPos&&p>.3)overlays.push({k:'burst',x:cx(X.spawnPos[1]),y:cy(X.spawnPos[0]),p:(p-.3)/.7,big:1});
+    iceA=1-tEase(p);
+  } else if(n==='fall'||n==='fall2'){
+    const a=n==='fall'?X.a1:X.a2, e=tBack(Math.min(1,p*1.05));
+    a.moves.forEach(m=>{items.push({cell:m.cell,r:m.fr+(m.tr-m.fr)*(m.fr===m.tr?0:Math.min(1,e)),c:m.c,s:1,a:m.fresh?Math.min(1,p*3):1});});
+    iceA=0;
+  } else if(n==='hold'){
+    place(X.G2,(o,r,c)=>{ if(r===X.src[0]&&c===X.src[1])o.s=pulse; });
+    if(T.tapTo){ const hp=tEase(Math.min(1,Math.max(0,(p-.25)/.5))); hand={r:X.src[0]+(T.tapTo[0]-X.src[0])*hp,c:X.src[1]+(T.tapTo[1]-X.src[1])*hp,tap:p<.25?p/.25:0,down:true}; }
+    else if(T.eff==='row'||T.eff==='bomb') hand={r:X.src[0],c:X.src[1],tap:(p*3)%1,down:true,ripple:1};
+    else hand={r:X.src[0],c:X.src[1],tap:(p*3)%1,down:true,ripple:1};
+    iceA=0;
+  } else if(n==='eff'){
+    const [sr,sc2]=X.src;
+    place(X.G2,(o,r,c)=>{
+      if(X.eset.has(r+','+c)){ const d=Math.hypot(r-sr,c-sc2), delay=Math.min(.45,d*.11); const q=Math.max(0,Math.min(1,(p-delay)/(1-delay-.2))); if(q>0){o.s=1+.4*tEase(q); o.a=1-tEase(q);} }
+    });
+    X.eset.forEach(k=>{const [r,c]=k.split(',').map(Number); const d=Math.hypot(r-sr,c-sc2), q=(p-Math.min(.45,d*.11))/.5; if(q>0&&q<1)overlays.push({k:'burst',x:cx(c),y:cy(r),p:q});});
+    overlays.push({k:'eff',e:T.eff,p,sr,sc:sc2,cs,tgt:X.tgt});
+    iceA=0;
+  } else { // end
+    place(X.a2?X.a2.G:X.G2);
+    iceA=0;
+  }
+  // gelo
+  const drawIce=(r,c,a)=>{ if(a<=0)return; g.save(); g.globalAlpha=a; const x=c*cs,y=r*cs; rrPath(g,x+3,y+3,cs-6,cs-6,12); g.fillStyle='rgba(190,235,255,.5)'; g.fill(); g.lineWidth=4; g.strokeStyle='rgba(255,255,255,.9)'; g.stroke(); g.lineWidth=3; g.strokeStyle='rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(x+cs*.25,y+cs*.78); g.lineTo(x+cs*.5,y+cs*.3); g.stroke(); g.restore(); };
+  // gemas
+  const star=(n==='end'||n==='fall')&&T.star;
+  items.forEach(o=>{
+    const w=cs*o.s; g.save(); g.globalAlpha=Math.max(0,o.a);
+    g.drawImage(tspr(o.cell.ty,o.cell.sp,S),(o.c+(o.dx||0))*cs+(cs-w)/2,o.r*cs+(cs-w)/2,w,w); g.restore();
+  });
+  if(X.ice.size){
+    X.ice.forEach(k=>{const [r,c]=k.split(',').map(Number); let a=1; if(n==='hint'||n==='swap')a=1; else if(n==='pop')a=iceA; else a=0; drawIce(r,c,a);});
+  }
+  // brilho da estrela chegando
+  if(star&&n==='end'){ const pc=.5+.5*Math.sin(t*7); g.save(); g.globalAlpha=.55*pc; const gr=g.createRadialGradient(cx(2),cy(4),4,cx(2),cy(4),cs*.9); gr.addColorStop(0,'#fff6b0'); gr.addColorStop(1,'rgba(255,230,120,0)'); g.fillStyle=gr; g.fillRect(0,cs*3,W,cs*2); g.restore(); for(let i=0;i<6;i++){const an=i*1.05+t*2, rr=cs*(.5+.15*Math.sin(t*5+i)); g.fillStyle='rgba(255,255,255,.9)'; g.beginPath(); g.arc(cx(2)+Math.cos(an)*rr,cy(4)+Math.sin(an)*rr,5,0,7); g.fill();} }
+  // efeitos
+  overlays.forEach(o=>{
+    if(o.k==='burst'){
+      const q=o.p, R=cs*(.3+.5*q), cnt=o.big?10:6; g.save(); g.globalAlpha=Math.max(0,1-q); g.fillStyle='#fff';
+      for(let i=0;i<cnt;i++){const an=i*(6.283/cnt)+.4; g.beginPath(); g.arc(o.x+Math.cos(an)*R,o.y+Math.sin(an)*R,(o.big?7:5)*(1-q*.5),0,7); g.fill();}
+      g.restore();
+    } else if(o.k==='eff'){
+      const q=o.p, e=o.e, c0=(o.sc+.5)*o.cs, r0=(o.sr+.5)*o.cs;
+      g.save();
+      if(e==='row'){ const wd=W*Math.min(1,q*1.6); g.globalAlpha=.9*(1-Math.max(0,q-.7)/.3); const gr=g.createLinearGradient(0,r0-o.cs*.5,0,r0+o.cs*.5); gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(.5,'#fff'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(c0-wd/2,r0-o.cs*.5,wd,o.cs); }
+      else if(e==='bomb'){ g.globalAlpha=.75*(1-q); g.fillStyle='#FFC65A'; g.beginPath(); g.arc(c0,r0,o.cs*(.4+1.5*q),0,7); g.fill(); g.lineWidth=8; g.strokeStyle='#fff'; g.stroke(); }
+      else if(e==='color'){ const tg=X.eset; g.globalAlpha=.9*(1-Math.max(0,q-.6)/.4); g.strokeStyle='#fff'; g.lineWidth=5; g.shadowColor='#fff'; g.shadowBlur=14; tg.forEach(k=>{const [r,c]=k.split(',').map(Number); if(r===o.sr&&c===o.sc)return; const l=Math.min(1,q*2.2); g.beginPath(); g.moveTo(c0,r0); g.lineTo(c0+((c+.5)*o.cs-c0)*l,r0+((r+.5)*o.cs-r0)*l); g.stroke();}); }
+      else if(e==='cross3'){ const l=Math.min(1,q*1.5); g.globalAlpha=.8*(1-Math.max(0,q-.7)/.3); g.fillStyle='#fff'; const wv=o.cs*3*l; g.fillRect(0,r0-o.cs*1.5,W,o.cs*3*Math.min(1,l*1.2)); g.fillRect(c0-o.cs*1.5,0,o.cs*3*Math.min(1,l*1.2),W); }
+      g.restore();
+    }
+  });
+  // mão (toque)
+  if(hand){
+    const hx=cx(hand.c), hy=cy(hand.r)+cs*.12, al=(hand.fade===undefined?1:hand.fade);
+    g.save(); g.globalAlpha=al;
+    if(hand.ripple||hand.tap>0){const rp=hand.tap||0; g.globalAlpha=al*(1-rp)*.9; g.lineWidth=5; g.strokeStyle='#fff'; g.beginPath(); g.arc(hx,hy,cs*(.2+.45*rp),0,7); g.stroke(); g.globalAlpha=al;}
+    g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12; g.shadowOffsetY=5;
+    const sc3=hand.down?.92:1; g.fillStyle='rgba(255,255,255,.96)'; g.beginPath(); g.arc(hx,hy,cs*.24*sc3,0,7); g.fill();
+    g.shadowColor='transparent'; g.lineWidth=5; g.strokeStyle='#E5702A'; g.stroke();
+    g.fillStyle='#E5702A'; g.beginPath(); g.arc(hx,hy,cs*.08,0,7); g.fill();
+    g.restore();
+  }
+  // texto do passo
+  const cm=T.capMap||{hint:0,swap:0,pop:1,fall:1,hold:2,eff:2,fall2:2,end:2};
+  return cm[n];
+}
+function tutLoop(X,tok){
+  const cv=$('tutCv'), g=cv.getContext('2d'), W=cv.width; const t0=performance.now();
+  const dots=document.querySelectorAll('#tutDots i'); const cap=$('tutCap'); tutIdx=-1;
+  (function f(){
+    if(tok!==tutTok||$('tut').hidden)return;
+    const t=((performance.now()-t0)/1000)%(X.total+.5), tt=Math.min(t,X.total-.001);
+    const idx=tutDraw(g,X,tt,W);
+    if(t>X.total){cv.style.opacity=Math.max(0,1-(t-X.total)/.25);} else cv.style.opacity=Math.min(1,t/.2+.2);
+    if(idx!==tutIdx){tutIdx=idx; cap.textContent=X.T.caps[idx]; cap.classList.remove('pop'); void cap.offsetWidth; cap.classList.add('pop'); dots.forEach((d,i)=>d.classList.toggle('on',i<=idx));}
+    requestAnimationFrame(f);
+  })();
+}
+function showTut(k){
+  const T=TUTS[k]; tutSeen[k]=1; save();
+  $('tutT').textContent=T.t; $('tutTxt').innerHTML=T.txt; $('tutGm').src=IMG_SRC.wave;
+  const X=tutBuild(T); tutTok++; $('tut').hidden=false; tutLoop(X,tutTok);
+  try{sfx.special();}catch(e){}
+}
 let tutQ=[], tutDone=null;
 function pendTuts(){
   const q=[], need=k=>!tutSeen[k];
@@ -1776,18 +1954,6 @@ function pendTuts(){
   if(goals.some(x=>x.k==='drop')&&need('drop'))q.push('drop');
   // jogador que já passou das fases de liberação: só mostra a mais nova de cada vez para não encher
   return q.slice(0,2);
-}
-function showTut(k){
-  const T=TUTS[k]; tutSeen[k]=1; save();
-  $('tutT').textContent=T.t; $('tutTxt').innerHTML=T.txt; $('tutGm').src=IMG_SRC.wave;
-  const D=$('tutDemo'); D.innerHTML='';
-  T.steps.forEach((st,i)=>{
-    if(i)D.insertAdjacentHTML('beforeend','<span class="ar">\u279C</span>');
-    const f=document.createElement('figure'), cv=document.createElement('canvas'); cv.width=cv.height=120;
-    const g=cv.getContext('2d'); g.W=g.H=120; st.d(g);
-    const fc=document.createElement('figcaption'); fc.textContent=st.cap; f.appendChild(cv); f.appendChild(fc); D.appendChild(f);
-  });
-  $('tut').hidden=false; try{sfx.special();}catch(e){}
 }
 function runTuts(done){
   tutQ=pendTuts(); tutDone=done;
@@ -2088,7 +2254,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v51';
+const APP_VER='v52';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
@@ -2179,7 +2345,7 @@ $('btnMapPlay').addEventListener('click',()=>walkTo(maxLevel));
 $('btnToMap').addEventListener('click',goMap);
 $('btnPalace').addEventListener('click',goHome);
 $('btnHome').addEventListener('click',goMap);
-if(location.hash==='#debug')window.__gm={showBanner,showTut,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
+if(location.hash==='#debug')window.__gm={showBanner,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();
