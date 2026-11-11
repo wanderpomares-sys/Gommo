@@ -321,6 +321,29 @@ html{font-synthesis-weight:none}
 .obj-tag{display:inline-flex; align-items:center; justify-content:center; gap:10px; margin:2px auto 6px; padding:6px 22px; border-radius:999px; font:800 26px/1 var(--font-display); letter-spacing:.08em; color:#fff; -webkit-text-stroke:5px #7a3f00; paint-order:stroke fill; background:linear-gradient(180deg,#FFE08A 0%,#FFB627 55%,#F29A12 100%); border:3px solid #B9780B; box-shadow:0 5px 0 #8a5a08,0 10px 16px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.7); text-shadow:0 2px 0 rgba(0,0,0,.2); width:auto; align-self:center}
 .obj-tag svg{width:22px; height:22px; flex:none; filter:drop-shadow(0 1px 0 #7a3f00)}
 .rinfo{align-items:center}
+
+/* ===== boas-vindas: Gemmo pergunta se quer instalar ou jogar ===== */
+.wel{position:fixed; inset:0; z-index:85; display:grid; place-items:center; padding:14px; overflow:hidden; background:linear-gradient(160deg,#0e5a73,#2b3a8c 48%,#7a2f9a 100%); background-size:220% 220%; animation:welbg 14s ease-in-out infinite}
+.wel[hidden]{display:none}
+@keyframes welbg{0%,100%{background-position:0% 30%}50%{background-position:100% 70%}}
+.wel-bg{position:absolute; inset:0; overflow:hidden; pointer-events:none}
+.wel-rays{position:absolute; left:-50%; top:-30%; width:200%; height:160%; background:repeating-conic-gradient(from 0deg at 50% 45%,rgba(255,255,255,.13) 0 9deg,transparent 9deg 20deg); -webkit-mask-image:radial-gradient(circle at 50% 45%,#000 5%,transparent 62%); mask-image:radial-gradient(circle at 50% 45%,#000 5%,transparent 62%); animation:welspin 50s linear infinite}
+@keyframes welspin{to{transform:rotate(360deg)}}
+.wel-gems img{position:absolute; bottom:-90px; opacity:.9; filter:drop-shadow(0 4px 5px rgba(0,0,0,.35)); animation:welfloat linear infinite}
+@keyframes welfloat{0%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(var(--dx),-60vh) rotate(180deg)}100%{transform:translate(0,-125vh) rotate(360deg)}}
+.wel-spk i{position:absolute; width:8px; height:8px; background:#fff; border-radius:50%; box-shadow:0 0 10px 3px rgba(255,255,255,.8); animation:weltw 2.4s ease-in-out infinite}
+@keyframes weltw{0%,100%{opacity:0; transform:scale(.3)}50%{opacity:1; transform:scale(1.2)}}
+.wel-card{position:relative; width:min(100%,400px); display:grid; gap:14px; justify-items:center; zoom:var(--ui)}
+.wel-bubble{position:relative; background:#fff; color:#17323b; border:4px solid #2E8FA0; border-radius:26px; padding:16px 20px; display:grid; gap:6px; text-align:center; box-shadow:0 6px 0 rgba(10,60,74,.4),0 14px 26px rgba(0,0,0,.35); animation:bpop .6s cubic-bezier(.2,1.5,.4,1) both}
+.wel-bubble::after{content:""; position:absolute; left:50%; bottom:-14px; width:22px; height:22px; margin-left:-11px; background:#fff; border-right:4px solid #2E8FA0; border-bottom:4px solid #2E8FA0; transform:rotate(45deg); border-bottom-right-radius:6px}
+.wel-bubble b{font:800 30px/1.05 var(--font-display); color:#0F6B7E}
+.wel-bubble span{font:800 22px/1.2 var(--font-display); color:#17323b}
+.wel-bubble u{text-decoration:none; color:#E5702A}
+.wel-bubble small{font:700 16px/1.25 var(--font-body); color:#4a6670}
+.wel-gm{width:min(62vw,230px); height:auto; object-fit:contain; filter:drop-shadow(0 10px 10px rgba(0,0,0,.45)); animation:instbob 2.2s ease-in-out infinite; margin-top:6px}
+.wel-btns{display:grid; gap:12px; width:100%}
+.btn.go.gold{border-color:#9a6200; background:linear-gradient(#FFE08A 0%,#FFB627 50%,#F08F10 100%); box-shadow:0 6px 0 #8a5a08,0 12px 20px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.7); -webkit-text-stroke:4px #7a3f00; animation:none}
+.wel-note{font:700 14px/1.3 var(--font-body); color:#CFEFF3; text-align:center}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -439,6 +462,18 @@ html{font-synthesis-weight:none}
   <div class="sr" id="live" aria-live="polite"></div>
 </main>
 
+<div class="wel" id="wel" hidden role="dialog" aria-labelledby="welT">
+  <div class="wel-bg"><div class="wel-rays"></div><div class="wel-gems" id="welGems"></div><div class="wel-spk" id="welSpk"></div></div>
+  <div class="wel-card">
+    <div class="wel-bubble"><b id="welT">Oi! Eu sou o Gemmo!</b><span>Você quer me <u>instalar</u> no seu celular ou prefere <u>já ir jogando</u>?</span><small>Instalar é rapidinho! Mas se quiser, pode começar jogando agora.</small></div>
+    <img id="welGm" class="wel-gm" alt="">
+    <div class="wel-btns">
+      <button type="button" class="btn go gold" id="welInst"><svg class="ic" aria-hidden="true"><use href="#ic-install"/></svg><span>Instalar rapidinho</span></button>
+      <button type="button" class="btn go" id="welPlay"><svg class="ic" aria-hidden="true"><use href="#ic-play"/></svg><span>Jogar agora</span></button>
+    </div>
+    <div class="wel-note">Se mudar de ideia, é só tocar no botão do celular no mapa.</div>
+  </div>
+</div>
 <div class="inst" id="inst" hidden role="dialog" aria-labelledby="instT">
   <div class="inst-card">
     <div class="inst-ptr up" id="instPtrTop"><svg class="iarr" viewBox="0 0 48 64" aria-hidden="true"><path d="M24 4v44M8 34l16 18 16-18" fill="none" stroke="#14602a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 4v44M8 34l16 18 16-18" fill="none" stroke="#FFE08A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Os três pontinhos ficam lá em cima, no canto!</span></div>
@@ -1951,7 +1986,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v48';
+const APP_VER='v49';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
@@ -1998,18 +2033,36 @@ function instRender(){
   const bb=document.querySelector('.inst-bubble'); bb.classList.remove('pop'); void bb.offsetWidth; bb.classList.add('pop');
   try{sfx.tick(stage*2);}catch(e){}
 }
-function instPick(p){ instS.p=p; instS.stage=0; instRender(); }
+function instPick(p,st){ instS.p=p; instS.stage=st||0; instRender(); }
+function openGuide(st){ $('instMascot').src=IMG_SRC.wave; instPick(isIOS()?'i':'a',st||0); $('inst').hidden=false; $('inst').scrollTop=0; }
+function buildWelcomeFx(){
+  const g=$('welGems'); if(g.childElementCount)return;
+  for(let i=0;i<14;i++){
+    let src=''; try{src=makeSprite(i%6,null,64).toDataURL();}catch(e){}
+    const im=document.createElement('img'); im.alt=''; im.src=src; const sz=34+Math.floor(Math.random()*34);
+    im.style.cssText='left:'+(Math.random()*92).toFixed(1)+'%;width:'+sz+'px;height:'+sz+'px;animation-duration:'+(9+Math.random()*9).toFixed(1)+'s;animation-delay:-'+(Math.random()*16).toFixed(1)+'s;--dx:'+(Math.random()*80-40).toFixed(0)+'px';
+    g.appendChild(im);
+  }
+  const k=$('welSpk');
+  for(let i=0;i<16;i++){const d=document.createElement('i'); d.style.cssText='left:'+(Math.random()*96).toFixed(1)+'%;top:'+(Math.random()*90).toFixed(1)+'%;animation-delay:-'+(Math.random()*2.4).toFixed(2)+'s;animation-duration:'+(1.6+Math.random()*2).toFixed(2)+'s'; k.appendChild(d);}
+}
+function showWelcome(){ $('welGm').src=IMG_SRC.wave; buildWelcomeFx(); $('wel').hidden=false; }
 function showInstall(force){
-  if(!force){ try{ if(localStorage.getItem('gemmo_inst')||isStandalone())return; }catch(e){ if(isStandalone())return; } }
-  $('instMascot').src=IMG_SRC.wave;
-  instPick(isIOS()?'i':'a'); $('inst').hidden=false; $('inst').scrollTop=0;
+  if(!force){
+    try{ if(localStorage.getItem('gemmo_inst')||isStandalone())return; }catch(e){ if(isStandalone())return; }
+    if(!$('wel').hidden||!$('inst').hidden)return;
+    showWelcome(); return;
+  }
+  $('wel').hidden=true; openGuide(0);
 }
 function closeInstall(){ $('inst').hidden=true; try{localStorage.setItem('gemmo_inst','1');}catch(e){} }
 $('tabA').addEventListener('click',()=>instPick('a'));
 $('tabI').addEventListener('click',()=>instPick('i'));
 $('instLater').addEventListener('click',closeInstall);
 $('btnInstMap').addEventListener('click',()=>showInstall(true));
-setTimeout(()=>{ if(!$('scrSplash').hidden||1)showInstall(false); },2500);
+$('welInst').addEventListener('click',()=>{ensureAudio(); $('wel').hidden=true; openGuide(1);});
+$('welPlay').addEventListener('click',()=>{ensureAudio(); $('wel').hidden=true; try{localStorage.setItem('gemmo_inst','1');}catch(e){} if(!$('scrSplash').hidden)goMap();});
+setTimeout(()=>showInstall(false),500);
 $('instGo').addEventListener('click',async()=>{
   const m=$('instGo').dataset.m;
   if(m==='next'){instS.stage++; instRender(); return;}
