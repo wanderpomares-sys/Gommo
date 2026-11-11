@@ -1701,53 +1701,71 @@ function updateHome(){
   $('hLives').textContent=lives;
   $('hLifeT').textContent=lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'';
 }
-const EPNAMES=[['Jardim de Cristal',0],['Ruínas Musgosas',1],['Jardins do Palácio',2],['Cavernas Brilhantes',0],['Mercado dos Gnomos',1],['Torre das Estrelas',2]];
+const EPNAMES=[['Jardim de Cristal',0],['Lago dos Reflexos',1],['Ruínas Musgosas',2],['Colinas de Coral',0],['Jardins do Palácio',1],['Escadaria Real',2]];
 let mapReveal=0; let MAP_LEVELS=300, MAPNODES=[], mapAt=0, walking=false, mapTop=0; const SPY=92, MAPW=390;
 const calcMapLevels=()=>Math.max(300,Math.ceil((maxLevel+45)/15)*15);
+/* caminho em "?" da paisagem com lagoa: sobe, dá a volta no círculo e segue para cima */
+function QMARK(){
+  const pts=[[420,1387],[412,1280],[395,1170],[365,1085],[334,1030]], cx=395, cy=853, a=235, b=170;
+  for(let d=105;d>=-90;d-=15){const r=d*Math.PI/180; pts.push([cx+a*Math.cos(r),cy+b*Math.sin(r)]);}
+  [[395,610],[385,540],[415,500],[440,470],[480,420],[490,380],[485,320],[475,260],[455,190],[430,120],[400,60],[385,10]].forEach(q=>pts.push(q));
+  return pts.map(q=>[q[0]*1125/780,q[1]*2000/1387]);
+}
 const MAPTILES=[
  {i:1,sw:0,p:[[270,1950],[380,1800],[500,1620],[520,1480],[430,1320],[330,1150],[310,1000],[380,860],[410,790]]},
  {i:0,sw:0,p:[[580,1900],[720,1650],[450,1420],[740,1190],[520,1040],[790,880],[500,650],[740,510],[520,330],[640,110]]},
- {i:5,sw:0,p:[[560,1950],[540,1560],[300,1400],[250,1180],[380,1010],[520,920],[600,760],[520,600],[610,440],[590,250],[560,80]]},
+ {i:5,sw:0,p:QMARK()},
  {i:2,sw:0,p:[[110,1930],[260,1710],[380,1530],[490,1320],[570,1170],[650,1010],[740,860],[820,700],[900,590],[980,500],[1060,440]]},
  {i:4,sw:36,p:[[580,1950],[565,520]]},
  {i:3,sw:36,p:[[560,1900],[565,480]]}
 ];
 function renderMap(){
   MAP_LEVELS=calcMapLevels();
-  const svg=$('mapSvg'), th=MAPW*1387/780, sc=MAPW/1125, D=90, OVF=95;
-  const need=MAP_LEVELS*D+50*Math.ceil(MAP_LEVELS/15)+320;
-  const tiles=[], poly=[]; let k=0, len=0, last=null;
-  while(len<need){
-    const t=MAPTILES[k%6], mir=Math.floor(k/6)%2===1;
+  const svg=$('mapSvg'), th0=MAPW*1387/780, sc=MAPW/1125, OVF=70;
+  const epEnd=Math.ceil(Math.max(1,maxLevel)/15)*15, nEp=epEnd/15; MAP_LEVELS=epEnd;
+  // cada episódio = uma paisagem (um caminho só), com 15 fases espaçadas ao longo dele
+  const tiles=[]; let u0=0; MAPNODES=[null];
+  const tileLoc=(t,mir,th)=>{
     let loc=t.p.map(q=>({x:(mir?1125-q[0]:q[0])*sc, l:(2000-q[1])/2000*th}));
     if(t.sw){
       const a=loc[0], b=loc[loc.length-1], out=[], n=Math.ceil((b.l-a.l)/26);
       for(let j=0;j<=n;j++){const f=j/n, l=a.l+(b.l-a.l)*f; out.push({x:a.x+(b.x-a.x)*f+t.sw*Math.sin(l/70)*Math.min(1,f*6,(1-f)*6),l});}
       loc=out;
     }
-    const u0=k===0?0:Math.min(last.u+70-loc[0].l, tiles[k-1].u0+th-OVF);
-    if(k>0)loc=loc.filter(p=>u0+p.l>last.u+55);
-    for(const p of loc){const g={x:p.x,u:u0+p.l}; if(poly.length){const q=poly[poly.length-1]; len+=Math.hypot(g.x-q.x,g.u-q.u);} g.s=len; poly.push(g); last=g;}
-    tiles.push({img:t.i,mir,u0}); k++;
+    return loc;
+  };
+  const lenOf=(loc,minL)=>{ // [s0,total] com início a partir de minL
+    let L=0, s0=null; const cum=[0];
+    for(let i=1;i<loc.length;i++){L+=Math.hypot(loc[i].x-loc[i-1].x,loc[i].l-loc[i-1].l); cum.push(L);}
+    for(let i=1;i<loc.length&&s0===null;i++){ if(loc[i].l>=minL){const f=Math.max(0,(minL-loc[i-1].l)/Math.max(1e-6,loc[i].l-loc[i-1].l)); s0=cum[i-1]+(cum[i]-cum[i-1])*f;} }
+    return {cum,L,s0:s0||0};
+  };
+  const nodeAt=(loc,cum,s)=>{let i=0; while(i<loc.length-2&&cum[i+1]<s)i++; const f=(s-cum[i])/Math.max(1e-6,cum[i+1]-cum[i]); return {x:loc[i].x+(loc[i+1].x-loc[i].x)*f, l:loc[i].l+(loc[i+1].l-loc[i].l)*f};};
+  const nodeU=[];
+  for(let e=0;e<nEp;e++){
+    const t=MAPTILES[e%6], mir=Math.floor(e/6)%2===1, minL=e?OVF+40:45;
+    let F=1.0, g; for(;F<=1.9;F+=.1){g=lenOf(tileLoc(t,mir,th0*F),minL); if((g.L-g.s0)/14>=70)break;}
+    F=Math.min(F,1.9); const th=th0*F, loc=tileLoc(t,mir,th); g=lenOf(loc,minL);
+    const lEnd=loc[loc.length-1].l;
+    for(let j=0;j<15;j++){const q=nodeAt(loc,g.cum,g.s0+(g.L-g.s0)*j/14); nodeU.push({x:q.x,u:u0+q.l});}
+    tiles.push({img:t.i,mir,u0,th,F,sp:(g.L-g.s0)/14});
+    u0+=lEnd+OVF+30;
   }
-  const H=tiles[tiles.length-1].u0+th;
-  const at=s0=>{let a=0; while(a<poly.length-2&&poly[a+1].s<s0)a++; const p=poly[a], q=poly[a+1], f=(s0-p.s)/Math.max(1e-6,q.s-p.s); return {x:p.x+(q.x-p.x)*f, y:H-(p.u+(q.u-p.u)*f)};};
-  MAPNODES=[null]; for(let n=1;n<=MAP_LEVELS;n++)MAPNODES.push(at(60+(n-1)*D+50*Math.floor((n-1)/15)));
-  const epEnd=Math.min(MAP_LEVELS,Math.ceil(Math.max(1,maxLevel)/15)*15);
-  mapTop=Math.max(0,MAPNODES[Math.min(MAP_LEVELS,epEnd)].y-74);
+  const lastT=tiles[tiles.length-1], H=lastT.u0+lastT.th;
+  nodeU.forEach(p=>MAPNODES.push({x:p.x,y:H-p.u}));
+  mapTop=Math.max(0,MAPNODES[epEnd].y-74);
   svg.setAttribute('viewBox','0 '+mapTop.toFixed(0)+' '+MAPW+' '+(H-mapTop).toFixed(0));
   const parts=['<defs>'+
-    '<linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="'+(1-OVF/th).toFixed(3)+'" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>'+
-    '<mask id="mk" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox" x="0" y="0" width="1" height="1"><rect width="1" height="1" fill="url(#gm)"/></mask>'+
-    [0,1,2,3,4,5].map(i=>'<image id="tl'+i+'" href="'+IMG_SRC['map'+i]+'" x="0" y="0" width="'+MAPW+'" height="'+th.toFixed(1)+'" preserveAspectRatio="none"/>').join('')+
+    tiles.map((t,i)=>'<linearGradient id="gm'+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="'+(1-OVF/t.th).toFixed(3)+'" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="mk'+i+'" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox" x="0" y="0" width="1" height="1"><rect width="1" height="1" fill="url(#gm'+i+')"/></mask>').join('')+
+    [0,1,2,3,4,5].map(i=>'<image id="tl'+i+'" href="'+IMG_SRC['map'+i]+'" x="0" y="0" width="'+MAPW+'" height="'+th0.toFixed(1)+'" preserveAspectRatio="none"/>').join('')+
     '<filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#021a22" flood-opacity=".5"/></filter>'+
     '<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6"/></filter></defs>'];
   parts.push('<rect width="'+MAPW+'" height="'+H.toFixed(0)+'" fill="#0b2530"/>');
   tiles.forEach((t,i)=>{
-    const y=H-t.u0-th, im='<use href="#tl'+t.img+'"'+(t.mir?' transform="translate('+MAPW+',0) scale(-1,1)"':'')+'/>';
-    parts.push('<g transform="translate(0,'+y.toFixed(1)+')"'+(i?' mask="url(#mk)"':'')+'>'+im+'</g>');
+    const y=H-t.u0-t.th, tr=(t.mir?'translate('+MAPW+',0) scale(-1,'+t.F.toFixed(3)+')':'scale(1,'+t.F.toFixed(3)+')');
+    parts.push('<g transform="translate(0,'+y.toFixed(1)+')"'+(i?' mask="url(#mk'+i+')"':'')+'><use href="#tl'+t.img+'" transform="'+tr+'"/></g>');
   });
-  const EP=[['Jardim de Cristal',0],['Ruínas Musgosas',1],['Jardins do Palácio',2],['Cavernas Brilhantes',0],['Mercado dos Gnomos',1],['Torre das Estrelas',2]];
+  const EP=EPNAMES;
   for(let e=0;e*15<MAP_LEVELS&&e*15+1<=epEnd;e++){
     const a=MAPNODES[e*15+1], b=e?MAPNODES[e*15]:null, nm=EP[e%EP.length];
     const x=MAPW/2, y=b?(a.y+b.y)/2:a.y+78, w=262, h=w*141/640, locked=(e*15+1)>maxLevel;
@@ -1762,12 +1780,12 @@ function renderMap(){
     const p=MAPNODES[i], st=best[i]|0, bonus=i%10===0;
     const cls=i<maxLevel?'done':i===maxLevel?'cur':'lock';
     const spr=cls==='lock'?'btnLock':(bonus?'btnBonus':(cls==='cur'?'btnCur':'btnDone'));
-    const R=cls==='cur'?40:31;
+    const spn=tiles[Math.floor((i-1)/15)].sp, kz=Math.max(.66,Math.min(1,spn*.46/31)), R=(cls==='cur'?40:31)*kz;
     let g='<g class="node '+cls+'" data-l="'+i+'" role="button" aria-label="Fase '+i+(cls==='lock'?' bloqueada':'')+'" transform="translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')">';
     if(cls==='cur')g+='<circle class="glow" r="'+(R+4)+'" fill="#FFD36B" filter="url(#glow)" opacity=".8"/>';
     g+='<image class="nc" href="'+IMG_SRC[spr]+'" x="'+(-R)+'" y="'+(-R)+'" width="'+(R*2)+'" height="'+(R*2)+'" filter="url(#sh)"/>';
-    if(cls!=='lock')g+='<text y="'+(cls==='cur'?10:8)+'" style="font-size:'+(cls==='cur'?'27px':'22px')+'">'+i+'</text>';
-    if(cls==='done'){for(let q=0;q<3;q++)g+='<image href="'+IMG_SRC[q<st?'starOn':'starOff']+'" x="'+(-27+q*18)+'" y="'+(R-6)+'" width="18" height="18"/>';}
+    if(cls!=='lock')g+='<text y="'+((cls==='cur'?10:8)*kz).toFixed(1)+'" style="font-size:'+((cls==='cur'?27:22)*kz).toFixed(1)+'px">'+i+'</text>';
+    if(cls==='done'){for(let q=0;q<3;q++)g+='<image href="'+IMG_SRC[q<st?'starOn':'starOff']+'" x="'+((-27+q*18)*kz).toFixed(1)+'" y="'+(R-6*kz).toFixed(1)+'" width="'+(18*kz).toFixed(1)+'" height="'+(18*kz).toFixed(1)+'"/>';}
     const pl=NEWP[i]?'peça nova':(bonus?'bônus':'');
     if(pl){const sd=p.x<195?1:-1, px=sd*(R+4)+(sd>0?0:-62); pills.push('<g transform="translate('+(p.x+px).toFixed(1)+','+(p.y-8).toFixed(1)+')" filter="url(#sh)"><rect class="pill" width="62" height="17" rx="8.5"/><text class="pt" x="31" y="12">'+pl+'</text></g>');}
     g+='</g>'; parts.push(g);
@@ -2361,7 +2379,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v57';
+const APP_VER='v58';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
