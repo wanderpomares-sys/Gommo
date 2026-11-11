@@ -411,6 +411,10 @@ html{font-synthesis-weight:none}
 .epc-next{font:800 17px var(--font-body); color:#CFEFF3}
 .epc-next u{text-decoration:none; color:#FFE08A}
 @media (max-height:760px){.epc-title{font-size:32px} .epc-gm{width:min(34vw,120px)!important} .epc-stars img{width:36px; height:36px}}
+
+.fogg{animation:fogout 5.2s .5s ease-in forwards}
+@keyframes fogout{0%{opacity:1}60%{opacity:.9}100%{opacity:0}}
+@keyframes fogdrift{from{transform:translateX(0)}to{transform:translateX(var(--dx))}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -1773,7 +1777,18 @@ function renderMap(){
   const gp=MAPNODES[Math.min(mapAt,MAP_LEVELS)];
   parts.push('<g id="gmo" pointer-events="none" transform="translate('+gp.x.toFixed(1)+','+gp.y.toFixed(1)+')" style="cursor:pointer"><image href="'+IMG_SRC.wave+'" x="-38" y="-90" width="76" height="76" preserveAspectRatio="xMidYMid meet" style="filter:drop-shadow(0 4px 4px rgba(0,0,0,.45))"/></g>');
   parts.push('<defs><linearGradient id="tf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2530"/><stop offset="1" stop-color="#0b2530" stop-opacity="0"/></linearGradient></defs><rect x="0" y="'+mapTop.toFixed(0)+'" width="'+MAPW+'" height="55" fill="url(#tf)"/>');
-  svg.innerHTML=parts.join('')+pills.join('');
+  let fogHtml='';
+  if(mapReveal&&!reduce){
+    const fy=MAPNODES[Math.min(mapReveal,MAP_LEVELS)].y-8, fh=Math.max(60,fy-mapTop), rr=(a,b)=>a+Math.random()*(b-a);
+    let puffs='';
+    for(let i=0;i<22;i++){const y=mapTop+rr(0,fh), dx=(Math.random()<.5?-1:1)*rr(40,110);
+      puffs+='<circle cx="'+rr(-20,MAPW+20).toFixed(0)+'" cy="'+y.toFixed(0)+'" r="'+rr(44,100).toFixed(0)+'" fill="rgba(238,246,255,'+rr(.55,.85).toFixed(2)+')" filter="url(#fogb)" style="--dx:'+dx.toFixed(0)+'px;animation:fogdrift 5s '+(0.4+i*.03).toFixed(2)+'s ease-in forwards"/>';}
+    fogHtml='<defs><filter id="fogb" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>'+
+      '<linearGradient id="fogg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E8F2FA" stop-opacity=".97"/><stop offset=".8" stop-color="#E8F2FA" stop-opacity=".95"/><stop offset="1" stop-color="#E8F2FA" stop-opacity="0"/></linearGradient></defs>'+
+      '<g id="fog" class="fogg" pointer-events="none"><rect x="0" y="'+mapTop.toFixed(0)+'" width="'+MAPW+'" height="'+(fh+50).toFixed(0)+'" fill="url(#fogg)"/>'+puffs+'</g>';
+  }
+  svg.innerHTML=parts.join('')+pills.join('')+fogHtml;
+  { const fg=$('fog'); if(fg)fg.addEventListener('animationend',e=>{if(e.target===fg)fg.remove();}); }
   svg.querySelectorAll('.node').forEach(n=>n.addEventListener('click',()=>walkTo(+n.dataset.l)));
   $('gmo').addEventListener('click',()=>walkTo(mapAt));
   svg.appendChild($('gmo'));
@@ -1784,7 +1799,7 @@ function renderMap(){
     const sc2=$('mapScroll'), rv=mapReveal, p=MAPNODES[Math.min(rv||maxLevel,MAP_LEVELS)], kk=sc2.querySelector('svg').getBoundingClientRect().width/MAPW;
     sc2.scrollTop=Math.max(0,(p.y-mapTop)*kk-sc2.clientHeight*0.6);
     if(rv){ mapReveal=0; const nm=EPNAMES[(Math.ceil(maxLevel/15)-1)%EPNAMES.length][0];
-      setTimeout(()=>{const m=$('mapToast'); m.textContent='Novo episódio: '+nm+'!'; m.hidden=false; clearTimeout(walkTo.h); walkTo.h=setTimeout(()=>{m.hidden=true;},3200); try{sfx.special();}catch(e){} walkTo(maxLevel,true);},900); }
+      setTimeout(()=>{const m=$('mapToast'); m.textContent='Novo episódio: '+nm+'!'; m.hidden=false; clearTimeout(walkTo.h); walkTo.h=setTimeout(()=>{m.hidden=true;},3200); try{sfx.special();}catch(e){} walkTo(maxLevel,true);},2200); }
   });
 }
 async function walkTo(l,noEnter){
@@ -2346,7 +2361,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v56';
+const APP_VER='v57';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
