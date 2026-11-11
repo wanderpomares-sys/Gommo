@@ -545,33 +545,68 @@ function ensureAudio(){
 const SND=1.7;
 /* ---------- música de fundo (sintetizada, em loop) ---------- */
 const MUS={bus:null,timer:0,next:0,step:0,playing:false};
-/* música de fundo: tema leve e alegre (marimba + baixo + acordes macios), 92 bpm */
-const PD=[523.25,587.33,659.25,783.99,880,1046.5];
-const CHD=[[261.63,329.63,392],[246.94,293.66,392],[220,261.63,329.63],[220,261.63,349.23]];
-const ROOT=[130.81,196,220,174.61];
-const MEL=[[2,-1,3,2,0,-1,2,-1],[1,-1,0,1,3,-1,1,-1],[4,-1,3,2,3,-1,4,-1],[3,-1,2,0,2,-1,0,-1],[2,-1,3,4,5,-1,4,3],[3,-1,1,0,1,-1,3,-1],[4,3,2,0,2,3,4,-1],[3,-1,2,-1,0,-1,-1,-1]];
-function musTone(f,t,d,type,vol,atk){
+/* música de fundo: banda completa sintetizada (bateria, baixo, pad, arpejo, flauta e sinos), 100 bpm, 16 compassos em loop */
+const NF=[523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5,1174.66,1318.51];
+const CHT=[[261.63,329.63,392],[246.94,293.66,392],[220,261.63,329.63],[220,261.63,349.23]]; // C G Am F
+const CBS=[130.81,98,110,87.31];
+const PROG=[0,1,2,3,0,1,3,0, 0,1,2,3,0,1,3,1];
+const LEAD=[
+ '4---4-5-7---5-4.','2---2-4-6---4-2.','5---5-7-9---7-5.','3---5-7-5---3---',
+ '4-5-7-9-7---4---','6---4-6-8-7-6-4.','5-3-5-7-5---3---','4---2---0-2-4---',
+ '7-9-7-4-7-9-7-4.','6-8-6-4-6-8-6-4.','5-7-9-7-5-7-5-4.','3-5-7-5-3-5-7---',
+ '4-7-9-7-4-7-9-7.','8-6-4-6-8-6-4-6.','7-5-3-5-7-5-3---','6---4---2-4-6---'];
+function musEnsureNoise(){ if(!noiseBuf){noiseBuf=AC.createBuffer(1,Math.floor(AC.sampleRate*2),AC.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;} }
+function musTone(f,t,d,type,vol,atk,lpf){
   const o=AC.createOscillator(), g=AC.createGain(); o.type=type; o.frequency.value=f;
   g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol,t+(atk||.01)); g.gain.exponentialRampToValueAtTime(.0001,t+d);
-  o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d+.05);
+  let out=g; if(lpf){const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=lpf; o.connect(lp); lp.connect(g);} else o.connect(g);
+  g.connect(MUS.bus); o.start(t); o.stop(t+d+.05);
 }
-function musMarimba(f,t,d,vol){ musTone(f,t,d,'sine',vol,.006); musTone(f*4,t,d*.25,'sine',vol*.25,.003); musTone(f*2,t,d*.5,'triangle',vol*.3,.004); }
+function musNoise(t,d,freq,type,vol){
+  musEnsureNoise();
+  const src=AC.createBufferSource(); src.buffer=noiseBuf; const f=AC.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=.8;
+  const g=AC.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  src.connect(f); f.connect(g); g.connect(MUS.bus); src.start(t,Math.random()*.5); src.stop(t+d+.02);
+}
+function musKick(t){
+  const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(48,t+.13);
+  g.gain.setValueAtTime(.3,t); g.gain.exponentialRampToValueAtTime(.0001,t+.22); o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+.25);
+}
+function musFlute(f,t,d,vol){
+  const o=AC.createOscillator(), o2=AC.createOscillator(), g=AC.createGain(), lp=AC.createBiquadFilter(), l=AC.createOscillator(), lg=AC.createGain();
+  o.type='triangle'; o2.type='sine'; o.frequency.value=f; o2.frequency.value=f*2; lp.type='lowpass'; lp.frequency.value=3600;
+  l.frequency.value=5.2; lg.gain.value=f*.007; l.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+  const g2=AC.createGain(); g2.gain.value=.22; o2.connect(g2); g2.connect(g);
+  g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(vol,t+.05); g.gain.setValueAtTime(vol*.85,t+Math.max(.06,d-.12)); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(lp); lp.connect(g); g.connect(MUS.bus); o.start(t); o2.start(t); l.start(t); o.stop(t+d+.05); o2.stop(t+d+.05); l.stop(t+d+.05);
+}
 function musSchedule(){
   if(!MUS.playing||!AC)return;
-  const E=60/92/2;
+  const T=60/100/4; // semicolcheia
   while(MUS.next<AC.currentTime+.6){
-    const bar=Math.floor(MUS.step/8)%8, i=MUS.step%8, t=MUS.next, c=bar%4;
-    if(i===0||i===4)musTone(ROOT[c],t,E*3,'triangle',.13,.01);                              // baixo
-    if(i===2||i===6)CHD[c].forEach(f=>musTone(f,t,E*1.6,'triangle',.035,.01));              // acordes
-    if(i===0)CHD[c].forEach(f=>musTone(f/2,t,E*7.5,'sine',.03,.5));                         // pad macio
-    const m=MEL[bar][i]; if(m>=0)musMarimba(PD[m],t,E*2.6,.11);                              // melodia
-    MUS.next+=E; MUS.step++;
+    const bar=Math.floor(MUS.step/16)%16, i=MUS.step%16, t=MUS.next, c=PROG[bar], ch=CHT[c], sec=bar>=8;
+    // bateria
+    if(i===0||i===8||(sec&&i===10))musKick(t);
+    if(i===4||i===12)musNoise(t,.13,1900,'bandpass',.06);
+    if(i%2===0)musNoise(t,i%4===0?.07:.04,8500,'highpass',i%4===0?.03:.018);
+    // baixo
+    if(i===0||i===6||i===8||i===14){ const f=CBS[c]*(i===6?2:i===14?1.5:1); musTone(f,t,T*3.2,'sawtooth',.075,.008,420); musTone(f,t,T*3.2,'sine',.09,.01); }
+    // pad
+    if(i===0)ch.forEach(f=>{musTone(f,t,T*15,'sawtooth',.011,.6,700); musTone(f*1.004,t,T*15,'sawtooth',.011,.6,700);});
+    // arpejo
+    if(i%2===0)musTone(ch[[0,1,2,1][(i/2)%4]]*2,t,T*3,'triangle',.032,.006);
+    // flauta (melodia)
+    const ch0=LEAD[bar][i];
+    if(ch0>='0'&&ch0<='9'){ let n=1; while(i+n<16&&LEAD[bar][i+n]==='-')n++; musFlute(NF[+ch0],t,Math.min(T*n*.96,1.4),sec?.085:.075); }
+    // sinos de brilho (segunda parte)
+    if(sec&&(i===2||i===10))musTone(ch[(i/2)%3]*4,t,T*5,'sine',.03,.004);
+    MUS.next+=T; MUS.step++;
   }
 }
 function musicStart(){
   if(!musicOn||MUS.playing||!AC)return;
-  if(!MUS.bus||MUS.bus.context!==AC){MUS.bus=AC.createGain(); MUS.bus.gain.value=.8; MUS.bus.connect(AC.destination);}
-  MUS.bus.gain.cancelScheduledValues(AC.currentTime); MUS.bus.gain.setValueAtTime(.0001,AC.currentTime); MUS.bus.gain.linearRampToValueAtTime(.8,AC.currentTime+2);
+  if(!MUS.bus||MUS.bus.context!==AC){MUS.bus=AC.createGain(); MUS.bus.gain.value=.4; MUS.bus.connect(AC.destination);}
+  MUS.bus.gain.cancelScheduledValues(AC.currentTime); MUS.bus.gain.setValueAtTime(.0001,AC.currentTime); MUS.bus.gain.linearRampToValueAtTime(.4,AC.currentTime+2);
   MUS.playing=true; MUS.next=AC.currentTime+.1; musSchedule(); MUS.timer=setInterval(musSchedule,200);
 }
 function musicStop(){
@@ -1916,7 +1951,9 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
+const APP_VER='v48';
 let deferredInstall=null;
+try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
 const isStandalone=()=>{try{return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}catch(e){return false;}};
 const isIOS=()=>/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
