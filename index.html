@@ -235,8 +235,36 @@ html{font-synthesis-weight:none}
 .chip b{-webkit-text-stroke:0; text-shadow:0 2px 0 rgba(0,0,0,.35)}
 .chip small{font-size:14px !important; opacity:.85 !important}
 .chip.done{background:#2FA95B; border-color:#9BE8B4}
+
+/* ===== botões: estilo cristal com borda dourada e ícones desenhados ===== */
+.ic{width:30px; height:30px; flex:none; filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+.btn.go{display:flex; align-items:center; justify-content:center; gap:10px; position:relative; overflow:hidden; border-radius:24px; border:3px solid #1B6B27; min-height:66px; background:linear-gradient(#A6F58F 0%,#48C24B 48%,#2A9638 100%); box-shadow:0 6px 0 #17591F,0 12px 20px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.6); font-size:28px; letter-spacing:.03em}
+.btn.go::before{content:""; position:absolute; left:7%; right:7%; top:5px; height:34%; border-radius:18px; background:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,0)); pointer-events:none}
+.btn.go span,.btn.go .ic{position:relative}
+.btn.go .ic{width:36px; height:36px}
+.btn.go.warn{border-color:#8a3d0d; background:linear-gradient(#FFD08A 0%,#F7943A 48%,#DD6A20 100%); box-shadow:0 6px 0 #8a3d0d,0 12px 20px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.55)}
+.rrow{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.rrow:has(#rSecondary[hidden]){grid-template-columns:1fr}
+.btn.rsec,.actions .btn{display:flex; align-items:center; justify-content:center; gap:8px; min-height:60px; border-radius:20px; border:2px solid #E8B64A; background:linear-gradient(180deg,#2F95A8 0%,#176073 55%,#0F4A5B 100%); color:#fff; font:800 19px/1.05 var(--font-display); letter-spacing:.02em; -webkit-text-stroke:3px #06303c; paint-order:stroke fill; box-shadow:0 4px 0 #072b36,0 8px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn.rsec:active,.actions .btn:active{transform:translateY(3px); box-shadow:0 1px 0 #072b36,inset 0 1px 0 rgba(255,255,255,.3)}
+.actions{gap:10px}
+.actions .btn{flex-direction:column; gap:3px; min-height:66px; font-size:17px; padding:8px 6px}
+.actions .btn .ic{width:30px; height:30px}
 </style>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="gPar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1BC"/><stop offset="1" stop-color="#F0BC55"/></linearGradient>
+<linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE9A0"/><stop offset="1" stop-color="#FFB627"/></linearGradient>
+<linearGradient id="gGem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9FFBF0"/><stop offset="1" stop-color="#1CA6B5"/></linearGradient>
+<linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DFF7E2"/></linearGradient>
+</defs>
+<symbol id="ic-map" viewBox="0 0 48 48"><path d="M5 12l12-5 14 5 12-5v29l-12 5-14-5-12 5z" fill="url(#gPar)" stroke="#8A5A14" stroke-width="2.6" stroke-linejoin="round"/><path d="M17 7v29M31 12v29" stroke="#C9902F" stroke-width="2" fill="none"/><path d="M9 33c5-1 6-7 11-6s5 6 10 4" stroke="#E5483B" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="1 5" fill="none"/><path d="M34 14l5 6-5 8-5-8z" fill="url(#gGem)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M29 20h10" stroke="#fff" stroke-width="1.4"/></symbol>
+<symbol id="ic-retry" viewBox="0 0 48 48"><path d="M38 24a14 14 0 1 1-4.3-10" fill="none" stroke="#7a4a00" stroke-width="9" stroke-linecap="round"/><path d="M38 24a14 14 0 1 1-4.3-10" fill="none" stroke="url(#gGold)" stroke-width="5.5" stroke-linecap="round"/><path d="M28 5l9.5 1.5-1.5 9.5z" fill="url(#gGold)" stroke="#7a4a00" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 18l4 6-4 6-4-6z" fill="url(#gGem)" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="ic-hint" viewBox="0 0 48 48"><path d="M24 4a14 14 0 0 0-8 25.5V34h16v-4.5A14 14 0 0 0 24 4z" fill="url(#gGold)" stroke="#8A5A14" stroke-width="2.6" stroke-linejoin="round"/><rect x="16" y="36" width="16" height="6" rx="3" fill="#BFE9EE" stroke="#4a6f78" stroke-width="2.2"/><path d="M19 15a6 6 0 0 1 5-4" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M20 34v-6l4-4 4 4v6" stroke="#8A5A14" stroke-width="2" fill="none" stroke-linejoin="round"/></symbol>
+<symbol id="ic-next" viewBox="0 0 48 48"><path d="M9 24h22M22 12l14 12-14 12" fill="none" stroke="#14602a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 24h22M22 12l14 12-14 12" fill="none" stroke="url(#gGreen)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="ic-play" viewBox="0 0 48 48"><path d="M15 8l26 16-26 16z" fill="url(#gGreen)" stroke="#14602a" stroke-width="5" stroke-linejoin="round" paint-order="stroke"/></symbol>
+<symbol id="ic-plus" viewBox="0 0 48 48"><path d="M20 8h8v12h12v8H28v12h-8V28H8v-8h12z" fill="url(#gGreen)" stroke="#8a3d0d" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke"/></symbol>
+</svg>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></symbol></svg>
 
 <section class="scr splash" id="scrSplash" role="button" tabindex="0" aria-label="Toque para jogar">
@@ -325,9 +353,9 @@ html{font-synthesis-weight:none}
   </div>
 
   <div class="actions">
-    <button class="btn" id="btnHint" type="button">Dica</button>
-    <button class="btn" id="btnRestart" type="button">Recomeçar</button>
-    <button class="btn" id="btnHome" type="button">Mapa</button>
+    <button class="btn" id="btnHint" type="button"><svg class="ic" aria-hidden="true"><use href="#ic-hint"/></svg><span>Dica</span></button>
+    <button class="btn" id="btnRestart" type="button"><svg class="ic" aria-hidden="true"><use href="#ic-retry"/></svg><span>Recomeçar</span></button>
+    <button class="btn" id="btnHome" type="button"><svg class="ic" aria-hidden="true"><use href="#ic-map"/></svg><span>Mapa</span></button>
   </div>
 
   <ul class="legend" aria-label="Peças especiais">
@@ -348,8 +376,7 @@ html{font-synthesis-weight:none}
     <div class="rinfo" id="rInfo"></div>
     <div class="ractions">
       <button class="btn go" id="rPrimary" type="button"></button>
-      <button class="btn rsec" id="rSecondary" type="button"></button>
-      <button class="rlink" id="rTertiary" type="button">Mapa</button>
+      <div class="rrow"><button class="btn rsec" id="rSecondary" type="button"></button><button class="btn rsec" id="rTertiary" type="button"><svg class="ic" aria-hidden="true"><use href="#ic-map"/></svg><span>Mapa</span></button></div>
     </div>
   </div>
 </div>
@@ -1246,7 +1273,7 @@ function showResult(o){
   const P=$('rPrimary'), S=$('rSecondary'), T=$('rTertiary');
   P.className='btn go'+(o.warn?' warn':''); P.innerHTML=o.primary[0]; P.onclick=o.primary[1];
   S.hidden=!o.secondary; if(o.secondary){S.innerHTML=o.secondary[0]; S.onclick=o.secondary[1];}
-  T.onclick=o.tertiary;
+  T.onclick=o.tertiary; decorateRes();
   $('res').hidden=false; $('res').scrollTop=0;
   // estrelas aparecem uma a uma
   document.querySelectorAll('#rStars img').forEach((im,i)=>{
@@ -1285,7 +1312,7 @@ function endLevel(){
     if(gift)info+=pill(gift[0],gift[1]);
     showResult({win:true,stars,score,newBest,info,title:stars===3?'Perfeito!':stars===2?'Muito bem!':'Fase '+lvl+' concluída!',
       primary:['Continuar',()=>{hideRes(); goMap();}],
-      secondary:['Jogar de novo',()=>{hideRes(); startLevel(lvl,true);}],
+      secondary:['Repetir',()=>{hideRes(); startLevel(lvl,true);}],
       tertiary:()=>{hideRes(); goMap();}});
   } else {
     const left=goals.filter(g=>remOf(g)>0).map(g=>'<span class="rpill"><img alt="" src="'+icoOf(g)+'">'+(g.k==='score'?remOf(g)+' pts':remOf(g))+'</span>').join('');
@@ -1478,6 +1505,13 @@ async function walkTo(l){
 }
 function goMap(){busy=true; clearTimeout(hintTimer); noLivesOn=false; $('overlay').hidden=true; hideRes(); renderMap(); show('map');}
 function goHome(){busy=true; clearTimeout(hintTimer); noLivesOn=false; $('overlay').hidden=true; hideRes(); updateHome(); show('home');}
+function decorateRes(){
+  const ic=n=>'<svg class="ic" aria-hidden="true"><use href="#ic-'+n+'"/></svg>';
+  const P=$('rPrimary'), S=$('rSecondary'), t=P.textContent.trim();
+  const k=t.startsWith('Continuar')?'next':t.startsWith('Jogar')?'play':t.startsWith('Tentar')?'retry':t.startsWith('+')?'plus':'';
+  P.innerHTML=(k?ic(k):'')+'<span>'+P.innerHTML+'</span>';
+  if(!S.hidden)S.innerHTML=ic('retry')+'<span>'+S.innerHTML+'</span>';
+}
 function showGoal(){
   busy=true;
   const r=$('res'); r.classList.add('goal');
@@ -1491,7 +1525,7 @@ function showGoal(){
   $('rInfo').innerHTML='<span style="width:100%;font:800 13px var(--font-body);letter-spacing:.16em;color:#9fd8dc">OBJETIVO</span>'+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
   const P=$('rPrimary'), S=$('rSecondary'), T=$('rTertiary');
   P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{hideRes(); busy=false; scheduleHint();};
-  S.hidden=true; T.onclick=()=>{hideRes(); goMap();};
+  S.hidden=true; T.onclick=()=>{hideRes(); goMap();}; decorateRes();
   r.hidden=false; r.scrollTop=0;
 }
 async function enterGame(L){
