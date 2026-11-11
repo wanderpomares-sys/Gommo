@@ -316,6 +316,11 @@ html{font-synthesis-weight:none}
 .inst-dots i{width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.3)}
 .inst-dots i.on{background:#FFE08A; width:26px; border-radius:6px}
 .inst-hint[hidden]{display:none}
+
+/* ===== etiqueta OBJETIVO ===== */
+.obj-tag{display:inline-flex; align-items:center; justify-content:center; gap:10px; margin:2px auto 6px; padding:6px 22px; border-radius:999px; font:800 26px/1 var(--font-display); letter-spacing:.08em; color:#fff; -webkit-text-stroke:5px #7a3f00; paint-order:stroke fill; background:linear-gradient(180deg,#FFE08A 0%,#FFB627 55%,#F29A12 100%); border:3px solid #B9780B; box-shadow:0 5px 0 #8a5a08,0 10px 16px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.7); text-shadow:0 2px 0 rgba(0,0,0,.2); width:auto; align-self:center}
+.obj-tag svg{width:22px; height:22px; flex:none; filter:drop-shadow(0 1px 0 #7a3f00)}
+.rinfo{align-items:center}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -329,6 +334,7 @@ html{font-synthesis-weight:none}
 <symbol id="ic-hint" viewBox="0 0 48 48"><path d="M24 4a14 14 0 0 0-8 25.5V34h16v-4.5A14 14 0 0 0 24 4z" fill="url(#gGold)" stroke="#8A5A14" stroke-width="2.6" stroke-linejoin="round"/><rect x="16" y="36" width="16" height="6" rx="3" fill="#BFE9EE" stroke="#4a6f78" stroke-width="2.2"/><path d="M19 15a6 6 0 0 1 5-4" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M20 34v-6l4-4 4 4v6" stroke="#8A5A14" stroke-width="2" fill="none" stroke-linejoin="round"/></symbol>
 <symbol id="ic-next" viewBox="0 0 48 48"><path d="M9 24h22M22 12l14 12-14 12" fill="none" stroke="#14602a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 24h22M22 12l14 12-14 12" fill="none" stroke="url(#gGreen)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 <symbol id="ic-play" viewBox="0 0 48 48"><path d="M15 8l26 16-26 16z" fill="url(#gGreen)" stroke="#14602a" stroke-width="5" stroke-linejoin="round" paint-order="stroke"/></symbol>
+<symbol id="ic-install" viewBox="0 0 48 48"><rect x="12" y="4" width="24" height="40" rx="6" fill="#E6F6F9" stroke="#0F6B7E" stroke-width="3"/><path d="M24 12v15M17 21l7 8 7-8" fill="none" stroke="#FFB627" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 37h10" stroke="#0F6B7E" stroke-width="3" stroke-linecap="round"/></symbol>
 <symbol id="ic-plus" viewBox="0 0 48 48"><path d="M20 8h8v12h12v8H28v12h-8V28H8v-8h12z" fill="url(#gGreen)" stroke="#8a3d0d" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke"/></symbol>
 </svg>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></symbol></svg>
@@ -343,6 +349,7 @@ html{font-synthesis-weight:none}
   <div class="bar">
     <div class="brand2"><img class="m" id="mapMascot" alt=""><span>Fases</span></div>
     <div class="lives" style="margin-left:auto"><img id="mapHeart" alt="" width="28" height="28"><b id="mLives">5</b><small id="mLifeT"></small></div>
+    <button class="icon-btn" id="btnInstMap" type="button" aria-label="Como instalar o jogo" title="Instalar"><svg class="ic" aria-hidden="true" style="width:30px;height:30px"><use href="#ic-install"/></svg></button>
     <button class="btn" id="btnPalace" type="button">Reformar</button>
   </div>
   <div class="mapscroll" id="mapScroll"><svg id="mapSvg" role="group" aria-label="Mapa de fases"></svg></div>
@@ -1609,7 +1616,7 @@ function showGoal(){
     const n=g.n, lab=g.k==='score'?'Faça '+n.toLocaleString('pt-BR')+' pontos':g.k==='ice'?'Quebre todo o gelo':g.k==='crate'?'Quebre '+n+(n===1?' caixa':' caixas'):g.k==='drop'?'Leve '+n+(n===1?' estrela':' estrelas')+' até o fundo':g.k==='spec'?'Crie '+n+(n===1?' peça especial':' peças especiais'):'Colete '+n+' '+GEMNAME[g.t];
     return '<span class="rpill goalp"><img alt="" src="'+icoOf(g)+'">'+lab+'</span>';
   }).join('');
-  $('rInfo').innerHTML='<span style="width:100%;font:800 13px var(--font-body);letter-spacing:.16em;color:#9fd8dc">OBJETIVO</span>'+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
+  $('rInfo').innerHTML='<span class="obj-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg>OBJETIVO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg></span>'+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
   const P=$('rPrimary'), S=$('rSecondary'), T=$('rTertiary');
   P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{hideRes(); busy=false; scheduleHint();};
   S.hidden=true; T.onclick=()=>{hideRes(); goMap();}; decorateRes();
@@ -1964,6 +1971,8 @@ function closeInstall(){ $('inst').hidden=true; try{localStorage.setItem('gemmo_
 $('tabA').addEventListener('click',()=>instPick('a'));
 $('tabI').addEventListener('click',()=>instPick('i'));
 $('instLater').addEventListener('click',closeInstall);
+$('btnInstMap').addEventListener('click',()=>showInstall(true));
+setTimeout(()=>{ if(!$('scrSplash').hidden||1)showInstall(false); },2500);
 $('instGo').addEventListener('click',async()=>{
   const m=$('instGo').dataset.m;
   if(m==='next'){instS.stage++; instRender(); return;}
