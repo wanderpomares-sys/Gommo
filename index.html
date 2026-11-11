@@ -1477,13 +1477,32 @@ function stopConf(){cancelAnimationFrame(confRaf); const c=$('conf'); if(c){cons
 function startConf(){
   if(reduce)return;
   const c=$('conf'), dp=Math.min(2,window.devicePixelRatio||1); c.width=innerWidth*dp; c.height=innerHeight*dp;
-  const g=c.getContext('2d'), cols=['#FFC531','#FF6B8A','#5FD6D0','#9B6BFF','#7BE06C','#FF9E3D'];
-  const P=Array.from({length:100},()=>({x:Math.random()*c.width,y:-Math.random()*c.height*.7,vx:(Math.random()-.5)*2*dp,vy:(2.2+Math.random()*3.2)*dp,w:(6+Math.random()*6)*dp,h:(10+Math.random()*9)*dp,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[rnd(cols.length)]}));
+  const g=c.getContext('2d'), cols=['#FFF3B0','#FFD36B','#FFFFFF','#BFF3FF','#FFC2E8','#D9C4FF'];
+  // estrelinhas brilhantes pré-desenhadas (4 pontas + halo)
+  const spr=cols.map(col=>{
+    const z=64, k=document.createElement('canvas'); k.width=k.height=z; const q=k.getContext('2d'); q.translate(z/2,z/2);
+    const gr=q.createRadialGradient(0,0,0,0,0,z/2); gr.addColorStop(0,'rgba(255,255,255,.95)'); gr.addColorStop(.18,col); gr.addColorStop(.45,'rgba(255,255,255,.18)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+    q.fillStyle=gr; q.beginPath(); q.arc(0,0,z/2,0,7); q.fill();
+    q.fillStyle='#fff'; q.shadowColor=col; q.shadowBlur=6;
+    q.beginPath(); const R=z*.46, r=z*.07;
+    for(let i=0;i<8;i++){const an=i*Math.PI/4-Math.PI/2, rr=i%2?r:R; q.lineTo(Math.cos(an)*rr,Math.sin(an)*rr);} q.closePath(); q.fill();
+    return k;
+  });
+  const P=Array.from({length:70},()=>{const big=Math.random()<.3; return {x:Math.random()*c.width,y:-Math.random()*c.height*.8,vx:(Math.random()-.5)*.6*dp,vy:(1.1+Math.random()*1.7)*dp,sz:(big?30+Math.random()*18:14+Math.random()*14)*dp,sp:spr[Math.floor(Math.random()*spr.length)],ph:Math.random()*6.28,tw:2+Math.random()*3,rot:Math.random()*1.5,vr:(Math.random()-.5)*.02,tr:[]};});
   const t0=performance.now(); cancelAnimationFrame(confRaf);
   (function loop(now){
-    g.clearRect(0,0,c.width,c.height); const age=now-t0;
-    P.forEach(p=>{p.x+=p.vx+Math.sin(p.y/60)*.6*dp; p.y+=p.vy; p.r+=p.vr; g.save(); g.translate(p.x,p.y); g.rotate(p.r); g.fillStyle=p.c; g.globalAlpha=Math.max(0,1-Math.max(0,age-3400)/800); g.fillRect(-p.w/2,-p.h/2,p.w,p.h); g.restore();});
-    if(age<4200)confRaf=requestAnimationFrame(loop); else g.clearRect(0,0,c.width,c.height);
+    g.clearRect(0,0,c.width,c.height); const age=now-t0, fade=Math.max(0,1-Math.max(0,age-3600)/800);
+    g.globalCompositeOperation='lighter';
+    P.forEach(p=>{
+      p.x+=p.vx+Math.sin(p.y/70+p.ph)*.5*dp; p.y+=p.vy; p.rot+=p.vr;
+      const tw=.55+.45*Math.sin(age/1000*p.tw+p.ph), sc=.7+.5*tw;
+      // rastro de pontinhos de luz
+      p.tr.push([p.x,p.y]); if(p.tr.length>7)p.tr.shift();
+      p.tr.forEach((t,i)=>{g.globalAlpha=fade*.25*(i/p.tr.length); g.beginPath(); g.fillStyle='#fff'; g.arc(t[0],t[1],p.sz*.07*(i/p.tr.length),0,7); g.fill();});
+      g.save(); g.translate(p.x,p.y); g.rotate(p.rot); g.globalAlpha=fade*(.5+.5*tw); const w=p.sz*sc; g.drawImage(p.sp,-w/2,-w/2,w,w); g.restore();
+    });
+    g.globalCompositeOperation='source-over'; g.globalAlpha=1;
+    if(age<4400)confRaf=requestAnimationFrame(loop); else g.clearRect(0,0,c.width,c.height);
   })(t0);
 }
 const pill=(img,txt)=>'<span class="rpill">'+(img?'<img alt="" src="'+img+'">':'')+txt+'</span>';
@@ -2266,7 +2285,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v53';
+const APP_VER='v54';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
@@ -2357,7 +2376,7 @@ $('btnMapPlay').addEventListener('click',()=>walkTo(maxLevel));
 $('btnToMap').addEventListener('click',goMap);
 $('btnPalace').addEventListener('click',goHome);
 $('btnHome').addEventListener('click',goMap);
-if(location.hash==='#debug')window.__gm={showBanner,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
+if(location.hash==='#debug')window.__gm={showBanner,startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();
