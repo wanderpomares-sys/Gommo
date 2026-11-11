@@ -432,6 +432,8 @@ html{font-synthesis-weight:none}
 #upd button{pointer-events:auto; display:flex; align-items:center; gap:8px; border:3px solid #fff; border-radius:999px; padding:10px 20px; background:linear-gradient(#8BE87A,#2FA83D); color:#fff; font:800 17px var(--font-display); -webkit-text-stroke:2.5px #17591F; paint-order:stroke fill; box-shadow:0 5px 0 #17591F,0 8px 14px rgba(0,0,0,.4); animation:updb 1.4s ease-in-out infinite}
 #upd .ic{width:20px; height:20px}
 @keyframes updb{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+.ep-tag{font:800 13px var(--font-body); letter-spacing:.08em; text-transform:uppercase; color:#FFE9A8; text-shadow:0 2px 0 rgba(0,0,0,.4); margin:-2px 0 2px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -1000,7 +1002,11 @@ function resize(){
 const SHAPES={
   full:[0,0,0,0,0,0,0,0], piramide:[3,2,1,0,0,1,2,3], castelo:[0,2,0,2,2,0,2,0], vale:[0,1,2,3,3,2,1,0],
   pilares:[0,2,0,2,0,2,0,2], escada:[4,3,2,1,0,0,0,0], coroa:[1,0,2,0,0,2,0,1], ilhas:[2,0,0,2,2,0,0,2],
-  torres:[3,0,3,0,0,3,0,3], portal:[0,0,2,3,3,2,0,0], ondas:[0,2,1,0,0,1,2,0], cantos:[2,0,0,0,0,0,0,2], telhado:[4,3,2,1,1,2,3,4], dentes:[0,3,0,3,0,3,0,3]
+  torres:[3,0,3,0,0,3,0,3], portal:[0,0,2,3,3,2,0,0], ondas:[0,2,1,0,0,1,2,0], cantos:[2,0,0,0,0,0,0,2], telhado:[4,3,2,1,1,2,3,4], dentes:[0,3,0,3,0,3,0,3],
+  zigue:[0,2,4,2,0,2,4,2], rampa:[0,0,1,1,2,2,3,3], rampaD:[3,3,2,2,1,1,0,0], janela:[0,0,3,3,3,3,0,0],
+  ponte:[2,0,0,3,3,0,0,2], mohawk:[4,3,0,0,0,0,3,4], serra:[0,4,0,4,0,4,0,4], degrau:[0,0,2,2,0,0,2,2],
+  uu:[0,2,3,4,4,3,2,0], emme:[0,3,1,3,3,1,3,0], lua:[4,2,1,0,0,0,1,4], funil:[4,3,2,0,0,2,3,4],
+  lados:[0,0,4,4,4,4,0,0], pente:[0,3,0,3,0,3,0,3], meia:[0,0,0,0,4,4,4,4]
 };
 const SHAPE_KEYS=Object.keys(SHAPES);
 const PATS={
@@ -1013,28 +1019,40 @@ const PATS={
   diagonal:(r,c)=>r>=1&&(r===c||r===c+1||r+c===7||r+c===8),
   cruz:(r,c)=>r>=2&&(c===3||c===4||r===4||r===5),
   cantos:(r,c)=>(r>=5&&(c<=1||c>=6))||(r>=2&&r<=3&&(c<=1||c>=6)),
-  bordas:(r,c)=>r>=2&&(c===0||c===7||r===7)
+  bordas:(r,c)=>r>=2&&(c===0||c===7||r===7),
+  linhas:(r,c)=>r>=2&&r<=6&&r%2===0,
+  xis:(r,c)=>r>=1&&(r===c||r+c===7||r===c+1||r+c===8||r===c-1||r+c===6),
+  esq:(r,c)=>r>=2&&c<=3,
+  topo:(r,c)=>r>=1&&r<=3,
+  meio:(r,c)=>r>=3&&r<=4,
+  quadrantes:(r,c)=>r>=2&&((r<=3&&(c<=2||c>=5))||(r>=5&&c>=2&&c<=5)),
+  moldura:(r,c)=>r>=1&&(c===0||c===7||r===1||r===7),
+  pontos:(r,c)=>r>=2&&r<=6&&r%2===0&&c%2===1
 };
 const PAT_KEYS=Object.keys(PATS);
-const ARCH=['score','gem','gem2','crate','ice','crate+gem','ice+gem','crate+ice','score+ice','score+crate','drop','drop+gem','drop+score','spec','spec+gem','spec+score','spec+ice'];
+const ARCH=['score','gem','gem2','crate','ice','crate+gem','ice+gem','crate+ice','score+ice','score+crate','drop','drop+gem','drop+score','spec','spec+gem','spec+score','spec+ice',
+  'ice2','ice2+gem','ice2+score','crate2','crate2+gem','crate2+ice','ice2+crate','use','use+gem','use+score','use+ice2','chain','chain+gem','chain+crate2','chain+ice','drop+ice2','drop+crate2','spec+crate2','use+drop'];
+const ARCH_MIN={ice2:16,crate2:18,use:20,chain:22};
+const archOk=(a,L)=>{ if(L<DROP_LEVEL&&a.indexOf('drop')>=0)return false; if(L<SPEC_LEVEL&&a.indexOf('spec')>=0)return false; for(const k in ARCH_MIN)if(a.indexOf(k)>=0&&L<ARCH_MIN[k])return false; return true; };
 const DROP_LEVEL=12, SPEC_LEVEL=14;
 const GEMNAME=['gemas vermelhas','gemas laranja','gemas verdes','gemas azuis','gemas roxas','estrelas rosa'];
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const seqCache={};
 function pickSeq(L){
   if(seqCache[L])return seqCache[L];
-  const prev=L>11?pickSeq(L-1):{arch:'score',shape:'full',pat:'centro'};
+  const hist=[]; for(let i=1;i<=4&&L-i>=11;i++)hist.push(pickSeq(L-i));
   const r=mulberry((L*2654435761)>>>0);
-  let a,s2,p;
-  do{a=ARCH[Math.floor(r()*ARCH.length)];}while(a===prev.arch||(L<DROP_LEVEL&&a.indexOf('drop')>=0)||(L<SPEC_LEVEL&&a.indexOf('spec')>=0));
+  const bad=(v,key,n)=>hist.slice(0,n).some(h=>h[key]===v);
+  let a,s2,p,g=0;
+  do{a=ARCH[Math.floor(r()*ARCH.length)]; g++;}while((bad(a,'arch',3)||!archOk(a,L))&&g<80);
   if(L===DROP_LEVEL)a='drop'; if(L===SPEC_LEVEL)a='spec';
-  do{s2=SHAPE_KEYS[Math.floor(r()*SHAPE_KEYS.length)];}while(s2===prev.shape||(s2==='full'&&((L+1)%10===0||(L-1)%10===0)));
-  do{p=PAT_KEYS[Math.floor(r()*PAT_KEYS.length)];}while(p===prev.pat);
+  g=0; do{s2=SHAPE_KEYS[Math.floor(r()*SHAPE_KEYS.length)]; g++;}while((bad(s2,'shape',4)||(s2==='full'&&((L+1)%10===0||(L-1)%10===0)))&&g<80);
+  g=0; do{p=PAT_KEYS[Math.floor(r()*PAT_KEYS.length)]; g++;}while(bad(p,'pat',3)&&g<80);
   return seqCache[L]={arch:a,shape:s2,pat:p};
 }
-function iceCells(pat,shape){
+function iceCells(pat,shape,thick){
   const tp=SHAPES[shape], out=[];
-  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(r>=tp[c]&&PATS[pat](r,c))out.push([r,c]);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(r>=tp[c]&&PATS[pat](r,c))out.push(thick>1?[r,c,thick]:[r,c]);
   return out;
 }
 function crateCells(n,shape,r){
@@ -1064,10 +1082,11 @@ function buildSpec(L){
     if(f.crateN)sp.crates=crateCells(f.crateN,f.shape,r);
     if(f.pat)sp.ice=iceCells(f.pat,f.shape);
   } else if(L%10===0){
-    sp={shape:'full',colors:4,moves:26,goals:[{k:'score',n:Math.min(3500,1800+L*20)}],bonus:true,crates:[],ice:[]};
+    const bsh=['full','piramide','vale','portal','coroa','ondas','telhado','cantos','ilhas','janela','uu','lua'][Math.floor(r()*12)];
+    sp={shape:bsh,colors:4,moves:26+(bsh==='full'?0:2),goals:[{k:'score',n:Math.min(3500,1800+L*20)}],bonus:true,crates:[],ice:[]};
   } else {
     const q=pickSeq(L), cyc=[2,1,0,-2,1][(L-1)%5];
-    const colors=(L%5===4)?6:5;
+    const colors=(L%5===4)?6:(L%8===5?4:5);
     let moves=19+Math.min(6,Math.floor(L/6))+cyc;
     const A=q.arch, mix=A.indexOf('+')>=0;
     const k=mix?0.7:1;
@@ -1083,12 +1102,20 @@ function buildSpec(L){
       else if(p==='drop')sp.goals.push({k:'drop',n:Math.min(7,2+Math.floor(L/14))});
       else if(p==='gem2'){const a=Math.floor(r()*colors); let b=(a+1+Math.floor(r()*(colors-1)))%colors; const n=Math.round(gemN*0.6); sp.goals.push({k:'gem',t:a,n},{k:'gem',t:b,n});}
       else if(p==='crate'){sp.crates=crateCells(crN,q.shape,r); sp.goals.push({k:'crate',n:sp.crates.length});}
-      else if(p==='ice'){let cells=iceCells(q.pat,q.shape); if(cells.length<6)cells=iceCells('centro',q.shape); sp.ice=cells; sp.goals.push({k:'ice',n:0});}
+      else if(p==='ice'||p==='ice2'){const th=p==='ice2'?2:1; let cells=iceCells(q.pat,q.shape,th); if(cells.length<6)cells=iceCells('centro',q.shape,th); if(th===2&&cells.length>14)cells=cells.slice(0,14); sp.ice=cells; sp.goals.push({k:'ice',n:0});}
+      else if(p==='crate2'){sp.crateHp=2; sp.crates=crateCells(Math.max(4,Math.round(crN*0.7)),q.shape,r); sp.goals.push({k:'crate',n:sp.crates.length});}
+      else if(p==='use')sp.goals.push({k:'use',n:Math.min(10,3+Math.floor(L/16))});
+      else if(p==='chain')sp.goals.push({k:'chain',n:Math.min(5,3+Math.floor(L/45))});
     }
     if(A==='score')sp.moves+=3;
     if(A.indexOf('crate')>=0||A.indexOf('ice')>=0)sp.moves+=2;
     if(A.indexOf('drop')>=0)sp.moves+=6;
     if(A.indexOf('spec')>=0)sp.moves+=4;
+    if(A.indexOf('ice2')>=0)sp.moves+=3;
+    if(A.indexOf('crate2')>=0)sp.moves+=3;
+    if(A.indexOf('use')>=0)sp.moves+=4;
+    if(A.indexOf('chain')>=0)sp.moves+=5;
+    if(L>=16&&r()<0.35){const sps=['h','v','bomb']; sp.start=[]; const n=1+(L>40&&r()<.4?1:0); for(let i=0;i<n;i++)sp.start.push(sps[Math.floor(r()*sps.length)]);}
   }
   sp.goals.forEach(g=>{if(g.k==='ice')g.n=sp.ice.length;});
   sp.moves=Math.max(10,sp.moves);
@@ -1103,11 +1130,13 @@ function goalLabel(g,rem){
   if(g.k==='score')return rem+' pontos';
   if(g.k==='spec')return 'criar '+rem+(rem===1?' peça especial':' peças especiais');
   if(g.k==='drop')return rem+(rem===1?' estrela dourada':' estrelas douradas');
+  if(g.k==='use')return 'ativar '+rem+(rem===1?' peça especial':' peças especiais');
+  if(g.k==='chain')return 'reação em cadeia de '+g.n+' combos';
   if(g.k==='gem')return rem+' '+GEMNAME[g.t];
   if(g.k==='crate')return rem+(rem===1?' caixa':' caixas');
   return rem+(rem===1?' bloco de gelo':' blocos de gelo');
 }
-const remOf=g=>g.k==='score'?Math.max(0,g.n-score):Math.max(0,g.n-g.got);
+const remOf=g=>g.k==='score'?Math.max(0,g.n-score):g.k==='chain'?(g.got>=g.n?0:g.n):Math.max(0,g.n-g.got);
 function icoOf(g){
   const key=g.k+(g.t!=null?g.t:'');
   if(ICON[key])return ICON[key];
@@ -1116,6 +1145,8 @@ function icoOf(g){
   else if(g.k==='crate'){g2.drawImage(makeSprite(-2,null,64),0,0);}
   else if(g.k==='drop'){g2.drawImage(makeSprite(-3,null,64),0,0);}
   else if(g.k==='spec'){g2.drawImage(makeSprite(3,'h',64),0,0);}
+  else if(g.k==='use'){g2.drawImage(makeSprite(0,'bomb',64),0,0);}
+  else if(g.k==='chain'){g2.drawImage(makeSprite(-1,'color',64),0,0);}
   else if(g.k==='ice'){
     g2.fillStyle='rgba(190,235,255,.95)'; rrPath(g2,6,6,52,52,12); g2.fill();
     g2.strokeStyle='#fff'; g2.lineWidth=3; g2.stroke();
@@ -1128,8 +1159,8 @@ function icoOf(g){
 function chipsHtml(){
   return goals.map(g=>{
     const rem=remOf(g), done=rem===0;
-    const lab=g.k==='score'?'pontos':g.k==='ice'?(rem===1?'gelo':'gelos'):g.k==='crate'?(rem===1?'caixa':'caixas'):g.k==='drop'?(rem===1?'estrela':'estrelas'):g.k==='spec'?(rem===1?'especial':'especiais'):(GEMNAME[g.t]||'gemas');
-    const num=done?'✓':(g.k==='score'?rem.toLocaleString('pt-BR'):String(rem));
+    const lab=g.k==='score'?'pontos':g.k==='ice'?(rem===1?'gelo':'gelos'):g.k==='crate'?(rem===1?'caixa':'caixas'):g.k==='drop'?(rem===1?'estrela':'estrelas'):g.k==='spec'?(rem===1?'especial':'especiais'):g.k==='use'?'ativar':g.k==='chain'?'cadeia':(GEMNAME[g.t]||'gemas');
+    const num=done?'✓':(g.k==='score'?rem.toLocaleString('pt-BR'):g.k==='chain'?('x'+g.n):String(rem));
     return '<span class="chip'+(done?' done':'')+'"><span class="cico"><img alt="" src="'+icoOf(g)+'"></span><span class="ctx"><b>'+num+'</b><small>'+(done?'feito!':lab)+'</small></span></span>';
   }).join('');
 }
@@ -1239,7 +1270,7 @@ function findMove(){
 function newBoard(){
   colTop=SHAPES[spec.shape].slice();
   ice=Array.from({length:N},()=>Array(N).fill(0));
-  spec.ice.forEach(p=>{ice[p[0]][p[1]]=1;});
+  spec.ice.forEach(p=>{ice[p[0]][p[1]]=p[2]||1;});
   let guard=0;
   do{
     grid=[];
@@ -1254,7 +1285,8 @@ function newBoard(){
         grid[r][c]=mk(t,r,c);
       }
     }
-    spec.crates.forEach(p=>{grid[p[0]][p[1]]=mk(-2,p[0],p[1]);});
+    spec.crates.forEach(p=>{const t=mk(-2,p[0],p[1]); if(spec.crateHp>1){t.hp=spec.crateHp; t.hpMax=spec.crateHp;} grid[p[0]][p[1]]=t;});
+    (spec.start||[]).forEach(sk=>{const cs=[]; for(let r=2;r<N;r++)for(let c=0;c<N;c++){const t=grid[r][c]; if(t&&t.type>=0&&!t.special&&r>=colTop[c])cs.push(t);} if(cs.length){const t=cs[rnd(cs.length)]; t.special=sk;}});
     dropLeft=0;
     const dg=spec.goals.find(g=>g.k==='drop');
     if(dg){
@@ -1345,7 +1377,7 @@ function addScore(pts,cx,cy){
 async function removeCells(clear,combo,spawns,preFx){
   const effects=preFx?preFx.slice():[];
   expandChain(clear,effects);
-  const extra=[];
+  const extra=[], hitCr=new Set();
   clear.forEach(k=>{
     const [r,c]=unkey(k), t=grid[r][c];
     if(!t||t.type===-2)return;
@@ -1353,7 +1385,7 @@ async function removeCells(clear,combo,spawns,preFx){
       const r2=r+d[0], c2=c+d[1];
       if(r2<0||c2<0||r2>=N||c2>=N)continue;
       const u=grid[r2][c2], k2=key(r2,c2);
-      if(u&&u.type===-2&&!clear.has(k2))extra.push(k2);
+      if(u&&u.type===-2&&!clear.has(k2)){ if(u.hp>1){ if(!hitCr.has(u)){u.hp--; hitCr.add(u); u.s=1.25; try{sfx.glass();}catch(e){}} } else extra.push(k2); }
     }
   });
   extra.forEach(k=>clear.add(k));
@@ -1373,10 +1405,12 @@ async function removeCells(clear,combo,spawns,preFx){
   }
   let iceN=0;
   for(const o of items){
-    if(ice[o.r][o.c]>0){ice[o.r][o.c]=0; goalAdd('ice',0); iceN++; iceBurst(o.r,o.c);}
+    if(ice[o.r][o.c]>0){ice[o.r][o.c]--; if(ice[o.r][o.c]===0){goalAdd('ice',0); iceN++;} iceBurst(o.r,o.c);}
+    if(o.t.special)goalAdd('use',0);
     if(o.t.type===-2)goalAdd('crate',0); else if(o.t.type>=0)goalAdd('gem',o.t.type);
   }
   for(let k=0;k<Math.min(iceN,7);k++)setTimeout(()=>sfx.glass(),60+k*70+Math.random()*40);
+  goals.forEach(g=>{if(g.k==='chain'&&combo>=g.n)g.got=g.n;});
   updateHud();
   const n=Math.max(1,items.length);
   const pts=items.length*10*combo+live.length*40;
@@ -1878,10 +1912,10 @@ function showGoal(){
   $('rribTxt').textContent='Fase '+level+(spec.bonus?' • bônus':'');
   $('rMascot').src=IMG_SRC.wave; $('rStars').innerHTML=''; $('rBest').hidden=true;
   const gp=goals.map(g=>{
-    const n=g.n, lab=g.k==='score'?'Faça '+n.toLocaleString('pt-BR')+' pontos':g.k==='ice'?'Quebre todo o gelo':g.k==='crate'?'Quebre '+n+(n===1?' caixa':' caixas'):g.k==='drop'?'Leve '+n+(n===1?' estrela':' estrelas')+' até o fundo':g.k==='spec'?'Crie '+n+(n===1?' peça especial':' peças especiais'):'Colete '+n+' '+GEMNAME[g.t];
+    const n=g.n, lab=g.k==='score'?'Faça '+n.toLocaleString('pt-BR')+' pontos':g.k==='ice'?'Quebre todo o gelo':g.k==='crate'?'Quebre '+n+(n===1?' caixa':' caixas'):g.k==='drop'?'Leve '+n+(n===1?' estrela':' estrelas')+' até o fundo':g.k==='spec'?'Crie '+n+(n===1?' peça especial':' peças especiais'):g.k==='use'?'Ative '+n+(n===1?' peça especial':' peças especiais'):g.k==='chain'?'Faça uma reação em cadeia de '+n+' combos':'Colete '+n+' '+GEMNAME[g.t];
     return '<span class="rpill goalp"><img alt="" src="'+icoOf(g)+'">'+lab+'</span>';
   }).join('');
-  $('rInfo').innerHTML='<span class="obj-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg>OBJETIVO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg></span>'+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
+  $('rInfo').innerHTML='<span class="obj-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg>OBJETIVO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg></span>'+(level>10?'<span class="ep-tag">Episódio '+(Math.floor((level-1)/15)+1)+' · '+EPNAMES[Math.floor((level-1)/15)%EPNAMES.length][0]+'</span>':'')+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
   const P=$('rPrimary'), S=$('rSecondary'), T=$('rTertiary');
   P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{hideRes(); runTuts(()=>{busy=false; scheduleHint();});};
   S.hidden=true; T.onclick=()=>{hideRes(); goMap();}; decorateRes();
@@ -2252,6 +2286,12 @@ function drawTile(t,now){
   if(clip){ctx.save(); ctx.beginPath(); ctx.rect(PAD+col*cell,PAD+clipTop*cell,cell,(N-clipTop)*cell); ctx.clip();}
   ctx.globalAlpha=Math.max(0,t.a);
   ctx.drawImage(sp,px-size/2,py-size/2,size,size);
+  if(t.type===-2&&t.hpMax>1){
+    const h=size/2; ctx.save(); ctx.translate(px,py);
+    if(t.hp>1){ctx.lineWidth=size*.06; ctx.strokeStyle='rgba(255,214,90,.95)'; rrPath(ctx,-h*.86,-h*.86,h*1.72,h*1.72,size*.1); ctx.stroke(); ctx.fillStyle='rgba(255,214,90,.95)'; ctx.fillRect(-h*.12,-h*.86,h*.24,h*1.72);}
+    else{ctx.lineWidth=size*.05; ctx.strokeStyle='rgba(40,20,0,.85)'; ctx.beginPath(); ctx.moveTo(-h*.5,-h*.7); ctx.lineTo(-h*.1,-h*.1); ctx.lineTo(-h*.4,h*.2); ctx.lineTo(h*.1,h*.7); ctx.moveTo(h*.5,-h*.5); ctx.lineTo(h*.15,0); ctx.stroke();}
+    ctx.restore();
+  }
   ctx.globalAlpha=1;
   if(clip)ctx.restore();
 }
@@ -2283,8 +2323,9 @@ function draw(now){
   for(let r=0;r<N;r++)for(let c=0;c<N;c++){
     if(!ice[r]||!ice[r][c])continue;
     const x=PAD+c*cell, y=PAD+r*cell;
-    rrPath(ctx,x+1.5,y+1.5,cell-3,cell-3,9); ctx.fillStyle='rgba(190,235,255,.42)'; ctx.fill();
-    ctx.lineWidth=2.5; ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.stroke();
+    rrPath(ctx,x+1.5,y+1.5,cell-3,cell-3,9); ctx.fillStyle=ice[r][c]>1?'rgba(120,190,255,.62)':'rgba(190,235,255,.42)'; ctx.fill();
+    ctx.lineWidth=ice[r][c]>1?4:2.5; ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.stroke();
+    if(ice[r][c]>1){rrPath(ctx,x+7,y+7,cell-14,cell-14,6); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.stroke();}
     ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.moveTo(x+cell*.22,y+cell*.78); ctx.lineTo(x+cell*.5,y+cell*.3); ctx.stroke();
   }
   for(let i=fx.length-1;i>=0;i--){
@@ -2398,7 +2439,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v60';
+const APP_VER='v61';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
