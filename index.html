@@ -415,6 +415,17 @@ html{font-synthesis-weight:none}
 .fogg{animation:fogout 5.2s .5s ease-in forwards}
 @keyframes fogout{0%{opacity:1}60%{opacity:.9}100%{opacity:0}}
 @keyframes fogdrift{from{transform:translateX(0)}to{transform:translateX(var(--dx))}}
+
+.res .rscore{position:relative; padding:6px 30px 10px; border-radius:30px; background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.07)); border:3px solid rgba(255,255,255,.55); box-shadow:0 6px 0 rgba(20,40,80,.28), inset 0 2px 8px rgba(255,255,255,.3); gap:0}
+.res .rscore small{font:800 13px var(--font-body); letter-spacing:.22em; color:#FFD6EC; text-shadow:0 2px 0 rgba(120,30,90,.45)}
+.res .rscore b{font-size:56px; line-height:1.05; -webkit-text-stroke:5px #fff; paint-order:stroke fill; background:linear-gradient(#FFB3DA,#FF7EB6 55%,#FF5FA2); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 4px 0 rgba(150,40,110,.55)) drop-shadow(0 0 10px rgba(255,170,220,.55)); letter-spacing:.05em}
+.res .rscore b.pop{animation:scpop .55s cubic-bezier(.2,1.8,.4,1)}
+@keyframes scpop{0%{transform:scale(1)}40%{transform:scale(1.22) rotate(-3deg)}100%{transform:scale(1)}}
+.res .rscore::before,.res .rscore::after{content:"\2726"; position:absolute; top:46%; font-size:22px; color:#FFE9A8; text-shadow:0 0 10px #fff; animation:twk 1.6s ease-in-out infinite}
+.res .rscore::before{left:8px}
+.res .rscore::after{right:8px; animation-delay:-.8s}
+@keyframes twk{0%,100%{transform:scale(.7) rotate(0); opacity:.6}50%{transform:scale(1.2) rotate(20deg); opacity:1}}
+.res.goal .rscore{display:none}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -1569,7 +1580,7 @@ function showResult(o){
   (function tick(now){
     const q=Math.max(0,Math.min(1,(now-t0)/1100)), v=Math.round(to*(1-Math.pow(1-q,3)));
     $('rScore').textContent=v.toLocaleString('pt-BR');
-    if(q<1)requestAnimationFrame(tick); else if(o.newBest){$('rBest').hidden=false; sfx.record();}
+    if(q<1)requestAnimationFrame(tick); else {const sb=$('rScore'); sb.classList.remove('pop'); void sb.offsetWidth; sb.classList.add('pop'); if(o.newBest){$('rBest').hidden=false; sfx.record();}}
   })(performance.now());
   sfx.thud();
   if(win){startConf(); setTimeout(()=>sfx.win(),reduce?200:550+Math.max(1,o.stars)*420+150);} else setTimeout(()=>sfx.lose(),250);
@@ -1581,8 +1592,8 @@ function endLevel(){
   if(isScoreOnly()){const max=target*2.1; stars=score>=max?3:score>=target*1.5?2:win?1:0;}
   else {const f=ml/spec.moves; stars=!win?0:f>=.4?3:f>=.2?2:1;}
   movesAtWin=null;
-  let epDone=0;
-  if(win&&level>=maxLevel){epDone=(level%15===0)?level/15:0; maxLevel=level+1; save();}
+  let epDone=0, adv=0;
+  if(win&&level>=maxLevel){epDone=(level%15===0)?level/15:0; adv=level+1; maxLevel=level+1; save();}
   const oldBest=best[level]||0, gained=win?Math.max(0,stars-oldBest):0;
   if(win&&stars>oldBest){best[level]=stars;}
   const newBest=win&&score>(scores[level]||0)&&(scores[level]||0)>0; if(win&&score>(scores[level]||0))scores[level]=score;
@@ -1597,7 +1608,7 @@ function endLevel(){
     if(gained>0)info+=pill(IMG_SRC.starOn,'+'+gained+' <small style="opacity:.8;font-weight:700">Salão '+Math.min(totalStars(),ROOM_GOAL)+'/'+ROOM_GOAL+'</small>');
     if(gift)info+=pill(gift[0],gift[1]);
     if(epDone){['hammer','swap','moves'].forEach(k=>boost[k]+=2); save(); refreshBoost();}
-    const toMap=()=>{hideRes(); if(epDone)showEpisodeDone(lvl); else goMap();};
+    const toMap=()=>{hideRes(); if(epDone)showEpisodeDone(lvl); else {if(adv){mapAt=lvl; mapAdv=adv;} goMap();}};
     showResult({win:true,stars,score,newBest,info,title:epDone?'Fase '+lvl+' concluída!':stars===3?'Perfeito!':stars===2?'Muito bem!':'Fase '+lvl+' concluída!',
       primary:['Continuar',toMap],
       secondary:['Repetir',()=>{hideRes(); startLevel(lvl,true);}],
@@ -1702,7 +1713,7 @@ function updateHome(){
   $('hLifeT').textContent=lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'';
 }
 const EPNAMES=[['Jardim de Cristal',0],['Lago dos Reflexos',1],['Ruínas Musgosas',2],['Colinas de Coral',0],['Jardins do Palácio',1],['Escadaria Real',2]];
-let mapReveal=0; let MAP_LEVELS=300, MAPNODES=[], mapAt=0, walking=false, mapTop=0; const SPY=92, MAPW=390;
+let mapReveal=0, mapAdv=0; let MAP_LEVELS=300, MAPNODES=[], mapAt=0, walking=false, mapTop=0; const SPY=92, MAPW=390;
 const calcMapLevels=()=>Math.max(300,Math.ceil((maxLevel+45)/15)*15);
 /* caminho em "?" da paisagem com lagoa: sobe, dá a volta no círculo e segue para cima */
 function QMARK(){
@@ -1814,9 +1825,10 @@ function renderMap(){
   $('mLives').textContent=lives;
   $('mLifeT').textContent=lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'';
   requestAnimationFrame(()=>{
-    const sc2=$('mapScroll'), rv=mapReveal, p=MAPNODES[Math.min(rv||maxLevel,MAP_LEVELS)], kk=sc2.querySelector('svg').getBoundingClientRect().width/MAPW;
+    const sc2=$('mapScroll'), rv=mapReveal, ad=mapAdv, p=MAPNODES[Math.min(rv||(ad?mapAt:maxLevel),MAP_LEVELS)], kk=sc2.querySelector('svg').getBoundingClientRect().width/MAPW;
     sc2.scrollTop=Math.max(0,(p.y-mapTop)*kk-sc2.clientHeight*0.6);
-    if(rv){ mapReveal=0; const nm=EPNAMES[(Math.ceil(maxLevel/15)-1)%EPNAMES.length][0];
+    if(ad&&!rv){ mapAdv=0; setTimeout(()=>{ if(mapAt<ad)walkTo(ad,true); },800); }
+    if(rv){ mapReveal=0; mapAdv=0; const nm=EPNAMES[(Math.ceil(maxLevel/15)-1)%EPNAMES.length][0];
       setTimeout(()=>{const m=$('mapToast'); m.textContent='Novo episódio: '+nm+'!'; m.hidden=false; clearTimeout(walkTo.h); walkTo.h=setTimeout(()=>{m.hidden=true;},3200); try{sfx.special();}catch(e){} walkTo(maxLevel,true);},2200); }
   });
 }
@@ -2379,7 +2391,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v58';
+const APP_VER='v59';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
