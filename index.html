@@ -359,6 +359,23 @@ html{font-synthesis-weight:none}
 .wel-btns{display:grid; gap:12px; width:100%}
 .btn.go.gold{border-color:#9a6200; background:linear-gradient(#FFE08A 0%,#FFB627 50%,#F08F10 100%); box-shadow:0 6px 0 #8a5a08,0 12px 20px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.7); -webkit-text-stroke:4px #7a3f00; animation:none}
 .wel-note{font:700 14px/1.3 var(--font-body); color:#CFEFF3; text-align:center}
+
+.tut{position:fixed; inset:0; z-index:84; display:grid; place-items:center; padding:14px; background:rgba(8,28,44,.72); backdrop-filter:blur(3px)}
+.tut[hidden]{display:none}
+.tut-card{width:min(100%,400px); display:grid; gap:10px; justify-items:center; zoom:var(--ui); animation:tutin .35s cubic-bezier(.2,1.3,.4,1)}
+@keyframes tutin{from{transform:scale(.8) translateY(20px); opacity:0}to{transform:none; opacity:1}}
+.tut-rib{background:linear-gradient(#FFE08A,#FFB627); color:#4a2a00; border:3px solid #9a6200; border-radius:16px; padding:6px 22px; font:800 24px/1.1 var(--font-display); box-shadow:0 5px 0 #8a5a08; text-align:center}
+.tut-box{position:relative; width:100%; background:#fff; color:#17323b; border:4px solid #2E8FA0; border-radius:26px; padding:14px 14px 16px; display:grid; gap:10px; text-align:center; box-shadow:0 6px 0 rgba(10,60,80,.35)}
+.tut-demo{display:flex; align-items:center; justify-content:center; gap:4px}
+.tut-demo figure{margin:0; display:grid; gap:4px; justify-items:center; width:30%}
+.tut-demo canvas{width:100%; max-width:104px; aspect-ratio:1; background:linear-gradient(#E4F6FA,#BFE6EE); border-radius:16px; border:3px solid #7CC3D1}
+.tut-demo figcaption{font:800 13px/1.15 var(--font-display); color:#0F6B7E}
+.tut-demo .ar{font:800 26px/1 var(--font-display); color:#E5702A; flex:none}
+.tut-txt{font:800 19px/1.25 var(--font-display); color:#17323b}
+.tut-txt u{text-decoration:none; color:#E5702A}
+.tut-gm{width:min(34vw,120px); height:auto; margin-top:-6px; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); animation:instbob 2.2s ease-in-out infinite}
+.tut-top{display:flex; align-items:flex-end; gap:6px; width:100%}
+.tut-top .tut-box{flex:1}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -477,6 +494,17 @@ html{font-synthesis-weight:none}
   <div class="sr" id="live" aria-live="polite"></div>
 </main>
 
+<div class="tut" id="tut" hidden role="dialog" aria-labelledby="tutT">
+  <div class="tut-card">
+    <div class="tut-rib" id="tutT"></div>
+    <div class="tut-box">
+      <div class="tut-demo" id="tutDemo"></div>
+      <div class="tut-txt" id="tutTxt"></div>
+    </div>
+    <img class="tut-gm" id="tutGm" alt="">
+    <button type="button" class="btn go" id="tutOk"><span>Entendi!</span></button>
+  </div>
+</div>
 <div class="wel" id="wel" hidden role="dialog" aria-labelledby="welT">
   <div class="wel-bg"><div class="wel-rays"></div><div class="wel-gems" id="welGems"></div><div class="wel-spk" id="welSpk"></div></div>
   <div class="wel-card">
@@ -532,7 +560,7 @@ const UNLOCK={stripe:3,bomb:5,color:8};
 const LIFE_MAX=5, LIFE_MS=30*60*1000;
 let lives=LIFE_MAX, lifeTs=0, noLivesOn=false;
 let best={};
-let spec=null, goals=[], ice=[], colTop=[0,0,0,0,0,0,0,0], ICON={};
+let tutSeen={}; let spec=null, goals=[], ice=[], colTop=[0,0,0,0,0,0,0,0], ICON={};
 const ROOM_GOAL=24;
 const reduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 const SPD=reduce?0.5:1.75;
@@ -579,11 +607,12 @@ function loadSave(){
     if(typeof s.lifeTs==='number')lifeTs=s.lifeTs;
     if(s.best&&typeof s.best==='object')best=s.best;
     if(s.scores&&typeof s.scores==='object')scores=s.scores;
+    if(s.tut&&typeof s.tut==='object')tutSeen=s.tut;
     if(s.boost&&typeof s.boost==='object')['hammer','swap','moves'].forEach(k=>{if(typeof s.boost[k]==='number')boost[k]=Math.max(0,s.boost[k]|0);});
   }catch(e){}
 }
 function save(){
-  try{localStorage.setItem('gemmo',JSON.stringify({level:maxLevel,sound:soundOn,music:musicOn,lives,lifeTs,best,boost,scores}));}catch(e){}
+  try{localStorage.setItem('gemmo',JSON.stringify({level:maxLevel,sound:soundOn,music:musicOn,lives,lifeTs,best,boost,scores,tut:tutSeen}));}catch(e){}
 }
 
 /* ---------- som ---------- */
@@ -1703,9 +1732,67 @@ function showGoal(){
   }).join('');
   $('rInfo').innerHTML='<span class="obj-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg>OBJETIVO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg></span>'+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
   const P=$('rPrimary'), S=$('rSecondary'), T=$('rTertiary');
-  P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{hideRes(); busy=false; scheduleHint();};
+  P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{hideRes(); runTuts(()=>{busy=false; scheduleHint();});};
   S.hidden=true; T.onclick=()=>{hideRes(); goMap();}; decorateRes();
   r.hidden=false; r.scrollTop=0;
+}
+
+/* ---------- janelinhas "como funciona" ---------- */
+const TUTS={
+  stripe:{t:'Peça listrada',txt:'Junte <u>4 gemas</u> iguais em linha e nasce uma peça listrada. Use ela e <u>limpa a linha ou coluna inteira</u>!',
+    steps:[{cap:'4 em linha',d:g=>{for(let i=0;i<4;i++)dg(g,3,null,i,0,4)}},{cap:'Peça listrada',d:g=>dg(g,3,'h',0,0,1)},{cap:'Limpa tudo!',d:g=>{g.fillStyle='rgba(255,255,255,.9)'; g.fillRect(0,g.H*.42,g.W,g.H*.16); for(let i=0;i<5;i++)dg(g,i%6,null,i,0,5,.5)}}]},
+  bomb:{t:'Bomba',txt:'Junte gemas em <u>L ou T</u> e aparece uma bomba. Quando usada, <u>explode tudo em volta</u>!',
+    steps:[{cap:'Formato L ou T',d:g=>{[[0,0],[1,0],[2,0],[2,1],[2,2]].forEach(p=>dg(g,0,null,p[0],p[1],3))}},{cap:'Bomba',d:g=>dg(g,0,'bomb',0,0,1)},{cap:'Boom!',d:g=>{g.fillStyle='rgba(255,200,80,.55)'; g.beginPath(); g.arc(g.W/2,g.H/2,g.W*.42,0,7); g.fill(); for(let r=0;r<3;r++)for(let c=0;c<3;c++)dg(g,(r+c)%5,null,c,r,3,.8)}}]},
+  color:{t:'Gema arco-íris',txt:'Junte <u>5 em linha</u> para criar a gema arco-íris. Troque ela com uma gema e <u>some todas dessa cor</u> do tabuleiro!',
+    steps:[{cap:'5 em linha',d:g=>{for(let i=0;i<5;i++)dg(g,4,null,i,0,5)}},{cap:'Arco-íris',d:g=>dg(g,-1,'color',0,0,1)},{cap:'Some uma cor!',d:g=>{[[0,0],[2,0],[1,1],[0,2],[2,2]].forEach(p=>dg(g,2,null,p[0],p[1],3)); g.fillStyle='rgba(255,255,255,.75)'; [[.2,.2],[.8,.3],[.5,.55],[.25,.8],[.8,.85]].forEach(p=>{g.beginPath(); g.arc(g.W*p[0],g.H*p[1],5,0,7); g.fill();})}}]},
+  combo:{t:'Combos especiais',txt:'Troque <u>duas peças especiais</u> de lugar e o efeito fica <u>ainda maior</u>! Teste: arco-íris + listrada, bomba + bomba...',
+    steps:[{cap:'Listrada',d:g=>dg(g,1,'v',0,0,1)},{cap:'Bomba',d:g=>dg(g,0,'bomb',0,0,1)},{cap:'Mega efeito!',d:g=>{g.fillStyle='rgba(255,200,80,.6)'; g.fillRect(g.W*.38,0,g.W*.24,g.H); g.fillRect(0,g.H*.38,g.W,g.H*.24); dg(g,0,'bomb',0,0,1,.7)}}]},
+  ice:{t:'Gelo',txt:'Gemas <u>congeladas</u>! Combine a gema que está no gelo para <u>quebrar o gelo</u>.',
+    steps:[{cap:'Gema no gelo',d:g=>{dg(g,3,null,0,0,1); iceOv(g)}},{cap:'Combine ela',d:g=>{for(let i=0;i<3;i++)dg(g,3,null,i,0,3); iceOv(g,.45)}},{cap:'Gelo quebrado!',d:g=>dg(g,3,null,0,0,1)}]},
+  crate:{t:'Caixa',txt:'As caixas não se mexem. Combine gemas <u>do lado delas</u> para quebrar!',
+    steps:[{cap:'Caixa',d:g=>dg(g,-2,null,0,0,1)},{cap:'Combine ao lado',d:g=>{dg(g,-2,null,0,1,3); dg(g,1,null,1,1,3); dg(g,1,null,2,1,3); dg(g,1,null,1,0,3)}},{cap:'Caixa quebrada!',d:g=>{g.fillStyle='rgba(255,255,255,.8)'; for(let i=0;i<6;i++){g.beginPath(); g.arc(g.W*(.25+.1*i),g.H*(.3+.08*(i%3)),5,0,7); g.fill();}}}]},
+  drop:{t:'Estrela',txt:'Leve as estrelas <u>até o fundo</u> do tabuleiro: combine as gemas de baixo para ela descer!',
+    steps:[{cap:'Estrela no alto',d:g=>dg(g,-3,null,0,0,1)},{cap:'Combine embaixo',d:g=>{dg(g,-3,null,1,0,3); dg(g,2,null,1,1,3); dg(g,2,null,1,2,3)}},{cap:'Chegou ao fundo!',d:g=>{dg(g,-3,null,1,2,3); g.fillStyle='rgba(255,255,255,.8)'; for(let i=0;i<5;i++){g.beginPath(); g.arc(g.W*(.2+.15*i),g.H*.2,4,0,7); g.fill();}}}]}
+};
+/* desenha uma gema em grade n x n dentro do canvas de demonstração */
+function dg(g,type,sp,c,r,n,al){
+  let x,y,w;
+  if(n===1){w=g.W*.72; x=(g.W-w)/2; y=(g.H-w)/2;}
+  else{w=g.W/n; x=c*w; y=(g.H-w*(n===3?3:1))/2+r*w;}
+  const prev=g.globalAlpha; g.globalAlpha=al||1;
+  try{g.drawImage(makeSprite(type,sp,Math.ceil(w*2)),x,y,w,w);}catch(e){}
+  g.globalAlpha=prev;
+}
+function iceOv(g,a){g.fillStyle='rgba(190,235,255,'+(a||.55)+')'; g.fillRect(2,2,g.W-4,g.H-4); g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=3; g.strokeRect(3,3,g.W-6,g.H-6);}
+let tutQ=[], tutDone=null;
+function pendTuts(){
+  const q=[], need=k=>!tutSeen[k];
+  if(level>=UNLOCK.stripe&&need('stripe'))q.push('stripe');
+  if(level>=UNLOCK.bomb&&need('bomb'))q.push('bomb');
+  if(level>=UNLOCK.color&&need('color'))q.push('color');
+  if(level>=UNLOCK.color+2&&need('combo'))q.push('combo');
+  if(spec&&spec.ice&&spec.ice.length&&need('ice'))q.push('ice');
+  if(spec&&spec.crates&&spec.crates.length&&need('crate'))q.push('crate');
+  if(goals.some(x=>x.k==='drop')&&need('drop'))q.push('drop');
+  // jogador que já passou das fases de liberação: só mostra a mais nova de cada vez para não encher
+  return q.slice(0,2);
+}
+function showTut(k){
+  const T=TUTS[k]; tutSeen[k]=1; save();
+  $('tutT').textContent=T.t; $('tutTxt').innerHTML=T.txt; $('tutGm').src=IMG_SRC.wave;
+  const D=$('tutDemo'); D.innerHTML='';
+  T.steps.forEach((st,i)=>{
+    if(i)D.insertAdjacentHTML('beforeend','<span class="ar">\u279C</span>');
+    const f=document.createElement('figure'), cv=document.createElement('canvas'); cv.width=cv.height=120;
+    const g=cv.getContext('2d'); g.W=g.H=120; st.d(g);
+    const fc=document.createElement('figcaption'); fc.textContent=st.cap; f.appendChild(cv); f.appendChild(fc); D.appendChild(f);
+  });
+  $('tut').hidden=false; try{sfx.special();}catch(e){}
+}
+function runTuts(done){
+  tutQ=pendTuts(); tutDone=done;
+  const next=()=>{ if(!tutQ.length){$('tut').hidden=true; const d=tutDone; tutDone=null; if(d)d(); return;} showTut(tutQ.shift()); };
+  $('tutOk').onclick=next; next();
 }
 async function enterGame(L){
   ensureAudio(); show('game'); resize();
@@ -2001,7 +2088,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v50';
+const APP_VER='v51';
 let deferredInstall=null;
 try{const vt=document.createElement('div'); vt.textContent=APP_VER; vt.style.cssText='position:fixed;left:8px;bottom:4px;z-index:90;font:700 11px sans-serif;color:rgba(255,255,255,.55);pointer-events:none;text-shadow:0 1px 2px #000'; document.body.appendChild(vt);}catch(e){}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e;});
@@ -2092,7 +2179,7 @@ $('btnMapPlay').addEventListener('click',()=>walkTo(maxLevel));
 $('btnToMap').addEventListener('click',goMap);
 $('btnPalace').addEventListener('click',goHome);
 $('btnHome').addEventListener('click',goMap);
-if(location.hash==='#debug')window.__gm={showBanner,forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
+if(location.hash==='#debug')window.__gm={showBanner,showTut,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();
