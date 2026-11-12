@@ -502,6 +502,14 @@ html{font-synthesis-weight:none}
 #bk textarea{width:100%; min-height:110px; border-radius:12px; border:2px solid #E8B64A; background:#06303c; color:#fff; font:12px/1.3 monospace; padding:8px; resize:vertical; box-sizing:border-box}
 #bk p{margin:8px 0; color:#BFE9EE; font:600 14px/1.35 var(--font-body)}
 #bk .sbtn{margin:6px 0 0; width:100%}
+.racebtn{position:absolute; left:10px; top:84px; z-index:12; display:flex; align-items:center; gap:6px; padding:6px 12px 6px 8px; border-radius:999px; background:linear-gradient(180deg,#ffd45a,#e79b12); border:2px solid #fff; color:#5a3300; font:800 15px var(--font-display); box-shadow:0 3px 0 #7a4a05,0 6px 14px rgba(0,0,0,.35); cursor:pointer}
+.racebtn img{width:24px; height:24px}
+.racebtn small{display:block; font:800 11px var(--font-body); color:#7a4a05; line-height:1}
+.racebtn.dot::after{content:''; position:absolute; top:-4px; right:-2px; width:14px; height:14px; border-radius:50%; background:#ff3b3b; border:2px solid #fff}
+#race{position:fixed; inset:0; z-index:89; display:grid; place-items:safe center; padding:12px; overflow-y:auto; background:radial-gradient(circle at 50% 20%,rgba(14,80,98,.92),rgba(3,14,22,.97)); backdrop-filter:blur(4px)}
+#race[hidden],.racebtn[hidden]{display:none}
+.rbar{height:20px; border-radius:999px; background:rgba(0,0,0,.4); border:2px solid #E8B64A; overflow:hidden; margin:6px 0 12px}
+.rbar i{display:block; height:100%; background:linear-gradient(180deg,#ffe27a,#f0a21a); transition:width .5s}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -527,6 +535,7 @@ html{font-synthesis-weight:none}
 </section>
 
 <section class="scr map" id="scrMap" hidden>
+  <button class="racebtn" id="raceBtn" type="button" hidden><img class="starimg" alt=""><span><span id="raceBtnT">Corrida</span><small id="raceBtnS"></small></span></button>
   <div class="bar">
     <div class="brand2"><img class="m" id="mapMascot" alt=""><span>Fases</span></div>
     <div class="lives" style="margin-left:auto"><img id="mapHeart" alt="" width="28" height="28"><b id="mLives">5</b><small id="mLifeT"></small></div>
@@ -635,6 +644,7 @@ html{font-synthesis-weight:none}
 <textarea id="bkOut" readonly></textarea><button class="sbtn gold" id="bkCopy" type="button">Copiar código</button>
 <p style="margin-top:16px"><b style="color:#fff">Restaurar:</b> cole um código salvo. Isso substitui o progresso deste aparelho.</p>
 <textarea id="bkIn" placeholder="Cole o código aqui"></textarea><button class="sbtn" id="bkGo" type="button">Restaurar progresso</button><p id="bkMsg" style="text-align:center;font-weight:800"></p></div></div>
+<div id="race" hidden role="dialog" aria-label="Corrida de estrelas"><div class="shop-card"><div class="shop-h"><h2>Corrida de estrelas</h2><button class="shop-x" id="raceX" type="button" aria-label="Fechar">✕</button></div><div id="raceBody"></div></div></div>
 <div id="adov" hidden role="dialog" aria-label="Anúncio"><div class="ad-card">
   <div class="ad-box" id="adBox">Anúncio de teste</div>
   <div class="ad-t" id="adT"></div>
@@ -723,8 +733,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=70"></script>
-<script src="sounds.js?v=70"></script>
+<script src="assets.js?v=71"></script>
+<script src="sounds.js?v=71"></script>
 <script>
 (function(){
 'use strict';
@@ -754,7 +764,7 @@ const COLORS=[
 
 let W=0, cell=0, dpr=1, tokens={board:'#0F5964',cell:'#136977',cell2:'#177583'};
 const sprites=new Map();
-let piggy=0, infUntil=0, adsDay={d:'',n:0}, offerTs=0, pass={m:'',k:0,f:[],p:[],prem:false}, contN=0, lastCoinGain=0, coins=100, adsOff=false, daily={d:'',s:0}, scores={}, movesAtWin=null, dropLeft=0, boostMode=null, boost={hammer:3,swap:2,moves:2};
+let race={id:'',stars:0,claimed:[]}, piggy=0, infUntil=0, adsDay={d:'',n:0}, offerTs=0, pass={m:'',k:0,f:[],p:[],prem:false}, contN=0, lastCoinGain=0, coins=100, adsOff=false, daily={d:'',s:0}, scores={}, movesAtWin=null, dropLeft=0, boostMode=null, boost={hammer:3,swap:2,moves:2};
 let grid=[], level=1, maxLevel=1, score=0, moves=0, target=700, ntypes=5;
 let reached=false, busy=true, over=false;
 let selected=null, drag=null, hintTiles=[], hintT0=0, hintTimer=0;
@@ -781,12 +791,12 @@ function loadSave(){
     if(s.best&&typeof s.best==='object')best=s.best;
     if(s.scores&&typeof s.scores==='object')scores=s.scores;
     if(s.tut&&typeof s.tut==='object')tutSeen=s.tut;
-    if(typeof s.coins==='number')coins=Math.max(0,s.coins|0); if(s.adsOff)adsOff=true; piggy=s.piggy|0; infUntil=s.infUntil|0; offerTs=s.offerTs|0; if(s.adsDay&&typeof s.adsDay==='object')adsDay={d:String(s.adsDay.d||''),n:s.adsDay.n|0}; if(s.pass&&typeof s.pass==='object')pass={m:String(s.pass.m||''),k:s.pass.k|0,f:Array.isArray(s.pass.f)?s.pass.f:[],p:Array.isArray(s.pass.p)?s.pass.p:[],prem:!!s.pass.prem}; if(s.daily&&typeof s.daily==='object')daily={d:String(s.daily.d||''),s:s.daily.s|0};
+    if(typeof s.coins==='number')coins=Math.max(0,s.coins|0); if(s.adsOff)adsOff=true; piggy=s.piggy|0; if(s.race&&typeof s.race==='object')race={id:String(s.race.id||''),stars:s.race.stars|0,claimed:Array.isArray(s.race.claimed)?s.race.claimed:[]}; infUntil=s.infUntil|0; offerTs=s.offerTs|0; if(s.adsDay&&typeof s.adsDay==='object')adsDay={d:String(s.adsDay.d||''),n:s.adsDay.n|0}; if(s.pass&&typeof s.pass==='object')pass={m:String(s.pass.m||''),k:s.pass.k|0,f:Array.isArray(s.pass.f)?s.pass.f:[],p:Array.isArray(s.pass.p)?s.pass.p:[],prem:!!s.pass.prem}; if(s.daily&&typeof s.daily==='object')daily={d:String(s.daily.d||''),s:s.daily.s|0};
     if(s.boost&&typeof s.boost==='object')['hammer','swap','moves'].forEach(k=>{if(typeof s.boost[k]==='number')boost[k]=Math.max(0,s.boost[k]|0);});
   }catch(e){}
 }
 function save(){
-  try{localStorage.setItem('gemmo',JSON.stringify({level:maxLevel,sound:soundOn,music:musicOn,lives,lifeTs,best,boost,scores,tut:tutSeen,coins,adsOff,daily,piggy,infUntil,adsDay,offerTs,pass}));}catch(e){}
+  try{localStorage.setItem('gemmo',JSON.stringify({level:maxLevel,sound:soundOn,music:musicOn,lives,lifeTs,best,boost,scores,tut:tutSeen,coins,adsOff,daily,piggy,infUntil,adsDay,offerTs,pass,race}));}catch(e){}
 }
 
 /* ---------- som ---------- */
@@ -1759,6 +1769,7 @@ function endLevel(){
   const newBest=win&&score>(scores[level]||0)&&(scores[level]||0)>0; if(win&&score>(scores[level]||0))scores[level]=score;
   let gift=null;
   if(win&&stars===3&&!spec.bonus){const ks=['hammer','swap','moves'], nm=['Martelo','Troca livre','+5 jogadas'], im=['bstHammer','bstSwap','bstMoves'], i=level%3; boost[ks[i]]++; gift=[IMG_SRC[im[i]],'+1 '+nm[i]];}
+  if(win)raceAdd(stars||1);
   let coinGain=0; if(win&&!spec.bonus){passSync(); if(pass.k<30)pass.k++; piggy=Math.min(PIG.cap,piggy+PIG.perWin); coinGain=12+(gained>0?10*gained:0)+(newBest?5:0)+(ml>0&&!isScoreOnly()?Math.min(20,ml*2):0); if(epDone)coinGain+=50; if(coinGain){coins+=coinGain;}} lastCoinGain=coinGain;
   save(); refreshBoost(); updateCoins();
   const leave=()=>{if(!win&&!spec.bonus)loseLife();};
@@ -1769,6 +1780,7 @@ function endLevel(){
     if(gained>0)info+=pill(IMG_SRC.starOn,'+'+gained+' <small style="opacity:.8;font-weight:700">Salão '+Math.min(totalStars(),ROOM_GOAL)+'/'+ROOM_GOAL+'</small>');
     if(gift)info+=pill(gift[0],gift[1]);
     if(coinGain)info+=pill(COIN,'+'+coinGain);
+    if(raceWin().active)info+=pill(IMG_SRC.starOn,'+'+(stars||1)+' <small style="opacity:.8;font-weight:700">Corrida</small>');
     if(epDone){['hammer','swap','moves'].forEach(k=>boost[k]+=2); save(); refreshBoost();}
     const toMap=()=>{hideRes(); if(epDone)showEpisodeDone(lvl); else {if(adv){mapAt=lvl; mapAdv=adv;} goMap();}};
     showResult({win:true,stars,score,newBest,info,title:epDone?'Fase '+lvl+' concluída!':stars===3?'Perfeito!':stars===2?'Muito bem!':'Fase '+lvl+' concluída!',
@@ -1890,7 +1902,7 @@ $('passGo').addEventListener('click',()=>{
   passGive(g); save(); updateCoins(); refreshBoost(); updateLives(); sfx.coins(); toast('+'+g.coins+' moedas'+(g.hammer+g.swap+g.moves?' e impulsionadores':'')+(g.inf?' e vidas infinitas':'')+'!'); openPass();
 });
 $('passX').addEventListener('click',()=>{$('pass').hidden=true; renderShop(); $('shop').hidden=false; updateDot();});
-function updateDot(){ const on=passClaimable()>0||offerActive(); const c=$('mapCoins'); if(c)c.classList.toggle('dot',!!on); }
+function updateDot(){ const on=passClaimable()>0||offerActive()||raceClaimable()>0; const c=$('mapCoins'); if(c)c.classList.toggle('dot',!!on); }
 function infLeft(){return Math.max(0,infUntil-Date.now());}
 function offerActive(){ if(starterBought()||maxLevel<STARTER.minLevel)return false; if(!offerTs){offerTs=Date.now(); save();} return Date.now()-offerTs<STARTER.hours*3600e3; }
 function adsLeft(){ const k=todayKey(); if(adsDay.d!==k)adsDay={d:k,n:0}; return Math.max(0,ADCAP-adsDay.n); }
@@ -1931,6 +1943,51 @@ $('bkGo').addEventListener('click',()=>{
     m.style.color='#7CFF7C'; m.textContent='Progresso restaurado! Reiniciando…'; setTimeout(()=>location.reload(),900);
   }catch(e){ m.style.color='#ff9a9a'; m.textContent='Código inválido. Confira se copiou inteiro.'; }
 });
+
+/* ---------- Corrida de estrelas (evento: sexta a domingo) ---------- */
+const RACE_TIERS=[
+  {n:5,  t:'40 moedas',        g:{coins:40}},
+  {n:12, t:'Martelo + Troca',  g:{hammer:1,swap:1}},
+  {n:22, t:'100 moedas',       g:{coins:100}},
+  {n:35, t:'Vidas infinitas 30 min', g:{inf:30}},
+  {n:50, t:'3 de cada reforço', g:{hammer:3,swap:3,moves:3}},
+  {n:70, t:'Baú real: 300 moedas + vidas infinitas 60 min', g:{coins:300,inf:60}}
+];
+let raceForce=null;
+function raceWin(){ /* {active,id,end,next} em hora local: ativo sexta 00:00 até domingo 23:59 */
+  const now=raceForce!=null?raceForce:Date.now(), d=new Date(now), day=d.getDay();
+  const back=(day+2)%7; /* dias desde a última sexta */
+  const fri=new Date(d.getFullYear(),d.getMonth(),d.getDate()-back).getTime();
+  const end=new Date(d.getFullYear(),d.getMonth(),d.getDate()-back+3).getTime();
+  const active=now<end;
+  const nextStart=active?fri:new Date(d.getFullYear(),d.getMonth(),d.getDate()-back+7).getTime();
+  return {active,id:'r'+new Date(fri).getFullYear()+'-'+new Date(fri).getMonth()+'-'+new Date(fri).getDate(),end,next:nextStart,now};
+}
+const fmtLeft=ms=>{const m=Math.max(0,Math.floor(ms/60000)), dd=Math.floor(m/1440), hh=Math.floor(m%1440/60), mm=m%60; return dd?dd+'d '+hh+'h':hh?hh+'h '+mm+'min':mm+'min';};
+function raceSync(){ const w=raceWin(); if(w.active&&race.id!==w.id)race={id:w.id,stars:0,claimed:[]}; return w; }
+function raceClaimable(){ const w=raceWin(); if(!w.active||race.id!==w.id)return 0; return RACE_TIERS.filter((t,i)=>race.stars>=t.n&&!race.claimed.includes(i)).length; }
+function raceAdd(n){ const w=raceSync(); if(w.active&&n>0){race.stars+=n;} }
+function updateRaceBtn(){
+  const b=$('raceBtn'); if(!b)return; const w=raceWin();
+  b.hidden=!(w.active&&maxLevel>=4);
+  if(!b.hidden){ b.classList.toggle('dot',raceClaimable()>0); $('raceBtnT').textContent='Corrida de estrelas'; $('raceBtnS').textContent=(race.id===w.id?race.stars:0)+' ★ · acaba em '+fmtLeft(w.end-w.now); b.querySelector('.starimg').src=IMG_SRC.starOn; }
+}
+function openRace(){
+  const w=raceSync(), body=$('raceBody'); let h='';
+  if(!w.active){ h='<p style="color:#BFE9EE;font:700 15px var(--font-body)">A próxima corrida começa na <b style="color:#fff">sexta-feira</b> (em '+fmtLeft(w.next-w.now)+').</p>'; }
+  else {
+    const top=RACE_TIERS[RACE_TIERS.length-1].n;
+    h+='<p style="margin:0;color:#BFE9EE;font:700 14px var(--font-body)">Cada estrela que você ganha nas fases vale pontos na corrida. Acaba em <b style="color:#fff">'+fmtLeft(w.end-w.now)+'</b>.</p>';
+    h+='<div class="rbar"><i style="width:'+Math.min(100,race.stars/top*100)+'%"></i></div><p style="margin:0 0 8px;text-align:center;color:#FFE08A;font:800 18px var(--font-display)">'+race.stars+' ★ de '+top+'</p>';
+    RACE_TIERS.forEach((t,i)=>{ const done=race.claimed.includes(i), ok=race.stars>=t.n;
+      h+='<div class="shop-row'+(ok&&!done?' hot':'')+'"><img class="ic2" alt="" src="'+IMG_SRC.starOn+'"><div class="t"><b>'+t.n+' estrelas</b><small>'+t.t+'</small></div><button class="sbtn '+(ok&&!done?'gold':'')+'" data-r="'+i+'"'+(done||!ok?' disabled':'')+'>'+(done?'Pego ✓':ok?'Pegar':'Faltam '+(t.n-race.stars))+'</button></div>'; });
+  }
+  body.innerHTML=h; body.querySelectorAll('[data-r]').forEach(b=>{b.onclick=()=>{ const i=+b.dataset.r, t=RACE_TIERS[i]; if(race.claimed.includes(i)||race.stars<t.n)return; race.claimed.push(i); passGive(Object.assign({coins:0,hammer:0,swap:0,moves:0,inf:0},t.g)); save(); updateCoins(); refreshBoost(); updateLives(); updateRaceBtn(); try{sfx.coins();}catch(e){} toast('Prêmio: '+t.t+'!'); openRace(); };});
+  $('race').hidden=false;
+}
+$('raceBtn').addEventListener('click',openRace);
+$('raceX').addEventListener('click',()=>{$('race').hidden=true; updateRaceBtn(); updateDot();});
+setInterval(()=>{ try{ if(!$('scrMap').hidden)updateRaceBtn(); }catch(e){} },30000);
 
 let shopFocus=null;
 function openShop(focus){
@@ -2210,7 +2267,7 @@ async function walkTo(l,noEnter){
   walking=false;
   if(!noEnter)await enterGame(l);
 }
-function goMap(){busy=true; clearTimeout(hintTimer); noLivesOn=false; $('overlay').hidden=true; hideRes(); renderMap(); show('map'); updateCoins(); if(dailyDue()&&$('epc').hidden&&$('shop').hidden)setTimeout(()=>{if(dailyDue()&&!$('scrMap').hidden&&$('epc').hidden)showDaily();},900);}
+function goMap(){busy=true; clearTimeout(hintTimer); noLivesOn=false; $('overlay').hidden=true; hideRes(); renderMap(); show('map'); updateCoins(); try{raceSync(); updateRaceBtn();}catch(e){} if(dailyDue()&&$('epc').hidden&&$('shop').hidden)setTimeout(()=>{if(dailyDue()&&!$('scrMap').hidden&&$('epc').hidden)showDaily();},900);}
 function goHome(){busy=true; clearTimeout(hintTimer); noLivesOn=false; $('overlay').hidden=true; hideRes(); updateHome(); show('home');}
 function decorateRes(){
   const ic=n=>'<svg class="ic" aria-hidden="true"><use href="#ic-'+n+'"/></svg>';
@@ -2789,7 +2846,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v70';
+const APP_VER='v71';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
@@ -2895,7 +2952,7 @@ $('btnMapPlay').addEventListener('click',()=>walkTo(maxLevel));
 $('btnToMap').addEventListener('click',goMap);
 $('btnPalace').addEventListener('click',goHome);
 $('btnHome').addEventListener('click',goMap);
-if(location.hash==='#debug')window.__gm={showTut,smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
+if(location.hash==='#debug')window.__gm={raceForce(v){raceForce=v;},openRace,showTut,smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();
