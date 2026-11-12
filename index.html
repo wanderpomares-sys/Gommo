@@ -733,8 +733,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=76"></script>
-<script src="sounds.js?v=76"></script>
+<script src="assets.js?v=77"></script>
+<script src="sounds.js?v=77"></script>
 <script>
 (function(){
 'use strict';
@@ -819,7 +819,7 @@ function smp(k,vol,rate,delay){
   if(!AC||!soundOn||!SMP[k])return false;
   try{const t=AC.currentTime+(delay||0), b=AC.createBufferSource(), g=AC.createGain(); b.buffer=SMP[k]; b.playbackRate.value=rate||1; g.gain.value=vol==null?.8:vol; b.connect(g); g.connect(OUT()); b.start(t); return true;}catch(e){return false;}
 }
-const SND=1.7;
+const SND=1.7; let quietChain=false; /* depois de limpar linha/coluna, os "plins" sintetizados da cascata ficam mudos até a próxima jogada */
 /* ---------- música de fundo (arquivo MP3 em loop) ---------- */
 const MUSIC_URL='music.mp3?v=72', MUS_VOL=.32;
 const MUS={el:null,playing:false,fade:0};
@@ -1492,10 +1492,10 @@ async function removeCells(clear,combo,spawns,preFx){
   updateHud();
   const n=Math.max(1,items.length);
   const pts=items.length*10*combo+live.length*40;
-  if(effects.some(e=>e.kind==='h'||e.kind==='v'))sfx.linha();
+  if(effects.some(e=>e.kind==='h'||e.kind==='v')){sfx.linha(); quietChain=true;}
   else if(effects.some(e=>e.kind==='zap'))sfx.lightning();
   else if(effects.some(e=>e.kind==='ring'))sfx.boom();
-  else if(live.length)sfx.special(); else sfx.clear(combo);
+  else if(live.length)sfx.special(); else if(!quietChain)sfx.clear(combo);
   if(combo>=2)showBanner(['','','Legal!','Incrível!','Brilhante!','Fantástico!','Gemástico!'][Math.min(6,combo)]);
   await anim(260,p=>{
     for(const o of items){o.t.s=(1+.2*Math.sin(p*Math.PI))*(1-p*.9); o.t.a=1-p;}
@@ -1597,7 +1597,7 @@ async function shuffleBoard(){
 async function doSwap(a,b,free){
   busy=true; selected=null; hintTiles=[]; clearTimeout(hintTimer);
   const ta=grid[a.r][a.c], tb=grid[b.r][b.c];
-  sfx.swap();
+  quietChain=false; sfx.swap();
   grid[a.r][a.c]=tb; grid[b.r][b.c]=ta;
   await slide([{t:ta,x1:b.c,y1:b.r},{t:tb,x1:a.c,y1:a.r}],150);
   let forced=null;
@@ -2796,7 +2796,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v76';
+const APP_VER='v77';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
