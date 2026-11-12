@@ -440,10 +440,21 @@ html{font-synthesis-weight:none}
 .coins img{width:26px; height:26px}
 .coins .plus{width:24px; height:24px; border-radius:50%; background:linear-gradient(180deg,#5fd35f,#2a9a33); border:2px solid #fff; display:grid; place-items:center; font:900 17px/1 var(--font-display); color:#fff}
 .map .bar .lives,.map .bar .coins{flex:none}
-#shop,#adov,#daily{position:fixed; inset:0; z-index:88; display:grid; place-items:safe center; padding:12px; overflow-y:auto; background:radial-gradient(circle at 50% 20%,rgba(14,80,98,.92),rgba(3,14,22,.97)); backdrop-filter:blur(4px)}
+#shop,#adov,#daily,#pass{position:fixed; inset:0; z-index:88; display:grid; place-items:safe center; padding:12px; overflow-y:auto; background:radial-gradient(circle at 50% 20%,rgba(14,80,98,.92),rgba(3,14,22,.97)); backdrop-filter:blur(4px)}
 #adov{z-index:96; background:rgba(2,10,16,.96)}
 #daily{z-index:90}
-#shop[hidden],#adov[hidden],#daily[hidden]{display:none}
+#shop[hidden],#adov[hidden],#daily[hidden],#pass[hidden]{display:none}
+#pass{z-index:89}
+.pass-h,.pass-r{display:grid; grid-template-columns:34px 1fr 1fr; gap:6px; align-items:stretch; margin-bottom:5px}
+.pass-h{font:800 12px var(--font-body); letter-spacing:.08em; text-transform:uppercase; color:#FFE08A; padding:0 2px}
+.pass-r b{display:grid; place-items:center; background:rgba(0,0,0,.35); border-radius:10px; color:#fff; font:800 15px var(--font-display)}
+.pass-r .pc{border-radius:10px; padding:7px 6px; background:rgba(0,0,0,.26); border:1.5px solid rgba(232,182,74,.3); color:#BFE9EE; font:700 12.5px/1.2 var(--font-body); text-align:center}
+.pass-r .pc.go{border-color:#5fd35f; color:#fff; background:rgba(95,211,95,.18)}
+.pass-r .pc.done{opacity:.55; color:#fff}
+.pass-r .pc.lock{opacity:.7; border-style:dashed}
+.pass-r.chest .pc{border-color:#FFD35A; color:#FFE9A8}
+.coins.dot::after{content:''; position:absolute; top:-2px; right:-2px; width:13px; height:13px; border-radius:50%; background:#ff3b3b; border:2px solid #fff}
+.coins{position:relative}
 .shop-card{width:min(100%,460px); background:linear-gradient(180deg,#1d7388,#0f4a5b); border:3px solid #E8B64A; border-radius:24px; padding:14px 14px 16px; box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .shop-h{display:flex; align-items:center; gap:10px; margin-bottom:10px}
 .shop-h h2{flex:1; margin:0; font:800 26px var(--font-display); color:#fff; -webkit-text-stroke:4px #06303c; paint-order:stroke fill}
@@ -605,6 +616,7 @@ html{font-synthesis-weight:none}
   <p class="test-tag" id="shopTest"></p>
   <p class="test-tag" style="font-size:14px;margin-top:12px">Precisa de ajuda? <a href="mailto:suporte@gemmo.com.br?subject=Ajuda%20Gemmo%20Combo" style="color:#FFE08A;font-weight:800">suporte@gemmo.com.br</a></p>
 </div></div>
+<div id="pass" hidden role="dialog" aria-label="Passe do Gemmo"><div class="shop-card"><div class="shop-h"><h2>Passe do Gemmo</h2><button class="shop-x" id="passX" type="button" aria-label="Fechar">✕</button></div><div id="passBody"></div><button class="sbtn gold" id="passGo" type="button" style="margin:12px auto 0;min-width:220px;font-size:20px;padding:12px 16px">Pegar tudo</button></div></div>
 <div id="adov" hidden role="dialog" aria-label="Anúncio"><div class="ad-card">
   <div class="ad-box" id="adBox">Anúncio de teste</div>
   <div class="ad-t" id="adT"></div>
@@ -722,7 +734,7 @@ const COLORS=[
 
 let W=0, cell=0, dpr=1, tokens={board:'#0F5964',cell:'#136977',cell2:'#177583'};
 const sprites=new Map();
-let lastCoinGain=0, coins=100, adsOff=false, daily={d:'',s:0}, scores={}, movesAtWin=null, dropLeft=0, boostMode=null, boost={hammer:3,swap:2,moves:2};
+let piggy=0, infUntil=0, adsDay={d:'',n:0}, offerTs=0, pass={m:'',k:0,f:[],p:[],prem:false}, contN=0, lastCoinGain=0, coins=100, adsOff=false, daily={d:'',s:0}, scores={}, movesAtWin=null, dropLeft=0, boostMode=null, boost={hammer:3,swap:2,moves:2};
 let grid=[], level=1, maxLevel=1, score=0, moves=0, target=700, ntypes=5;
 let reached=false, busy=true, over=false;
 let selected=null, drag=null, hintTiles=[], hintT0=0, hintTimer=0;
@@ -749,12 +761,12 @@ function loadSave(){
     if(s.best&&typeof s.best==='object')best=s.best;
     if(s.scores&&typeof s.scores==='object')scores=s.scores;
     if(s.tut&&typeof s.tut==='object')tutSeen=s.tut;
-    if(typeof s.coins==='number')coins=Math.max(0,s.coins|0); if(s.adsOff)adsOff=true; if(s.daily&&typeof s.daily==='object')daily={d:String(s.daily.d||''),s:s.daily.s|0};
+    if(typeof s.coins==='number')coins=Math.max(0,s.coins|0); if(s.adsOff)adsOff=true; piggy=s.piggy|0; infUntil=s.infUntil|0; offerTs=s.offerTs|0; if(s.adsDay&&typeof s.adsDay==='object')adsDay={d:String(s.adsDay.d||''),n:s.adsDay.n|0}; if(s.pass&&typeof s.pass==='object')pass={m:String(s.pass.m||''),k:s.pass.k|0,f:Array.isArray(s.pass.f)?s.pass.f:[],p:Array.isArray(s.pass.p)?s.pass.p:[],prem:!!s.pass.prem}; if(s.daily&&typeof s.daily==='object')daily={d:String(s.daily.d||''),s:s.daily.s|0};
     if(s.boost&&typeof s.boost==='object')['hammer','swap','moves'].forEach(k=>{if(typeof s.boost[k]==='number')boost[k]=Math.max(0,s.boost[k]|0);});
   }catch(e){}
 }
 function save(){
-  try{localStorage.setItem('gemmo',JSON.stringify({level:maxLevel,sound:soundOn,music:musicOn,lives,lifeTs,best,boost,scores,tut:tutSeen,coins,adsOff,daily}));}catch(e){}
+  try{localStorage.setItem('gemmo',JSON.stringify({level:maxLevel,sound:soundOn,music:musicOn,lives,lifeTs,best,boost,scores,tut:tutSeen,coins,adsOff,daily,piggy,infUntil,adsDay,offerTs,pass}));}catch(e){}
 }
 
 /* ---------- som ---------- */
@@ -1732,7 +1744,7 @@ function endLevel(){
   const newBest=win&&score>(scores[level]||0)&&(scores[level]||0)>0; if(win&&score>(scores[level]||0))scores[level]=score;
   let gift=null;
   if(win&&stars===3&&!spec.bonus){const ks=['hammer','swap','moves'], nm=['Martelo','Troca livre','+5 jogadas'], im=['bstHammer','bstSwap','bstMoves'], i=level%3; boost[ks[i]]++; gift=[IMG_SRC[im[i]],'+1 '+nm[i]];}
-  let coinGain=0; if(win&&!spec.bonus){coinGain=(gained>0?10*gained:0)+(newBest?5:0)+(ml>0&&!isScoreOnly()?Math.min(20,ml*2):0); if(epDone)coinGain+=50; if(coinGain){coins+=coinGain;}} lastCoinGain=coinGain;
+  let coinGain=0; if(win&&!spec.bonus){passSync(); if(pass.k<30)pass.k++; piggy=Math.min(PIG.cap,piggy+PIG.perWin); coinGain=12+(gained>0?10*gained:0)+(newBest?5:0)+(ml>0&&!isScoreOnly()?Math.min(20,ml*2):0); if(epDone)coinGain+=50; if(coinGain){coins+=coinGain;}} lastCoinGain=coinGain;
   save(); refreshBoost(); updateCoins();
   const leave=()=>{if(!win&&!spec.bonus)loseLife();};
   const lvl=level;
@@ -1750,12 +1762,12 @@ function endLevel(){
       tertiary:toMap});
   } else {
     const left=goals.filter(g=>remOf(g)>0).map(g=>'<span class="rpill"><img alt="" src="'+icoOf(g)+'">'+(g.k==='score'?remOf(g)+' pts':remOf(g))+'</span>').join('');
-    const hasB=boost.moves>0, canPay=!hasB&&coins>=COST.moves, canCont=(hasB||canPay)&&!spec.bonus;
-    const cont=()=>{hideRes(); if(hasB)boost.moves--; else coins-=COST.moves; moves+=5; over=false; busy=false; save(); refreshBoost(); updateCoins(); updateHud(); showBanner('+5 jogadas'); try{sfx.power();}catch(e){} scheduleHint();};
+    const price=contCost(), hasB=boost.moves>0, canPay=!hasB&&coins>=price, canCont=(hasB||canPay)&&!spec.bonus;
+    const cont=()=>{hideRes(); if(hasB)boost.moves--; else {coins-=price; contN++;} moves+=5; over=false; busy=false; save(); refreshBoost(); updateCoins(); updateHud(); showBanner('+5 jogadas'); try{sfx.power();}catch(e){} scheduleHint();};
     showResult({win:false,stars:0,score,newBest:false,warn:canCont,
       info:'<span style="width:100%;font-weight:700;color:#cfeaec">Faltou:</span>'+left,
       title:'Sem jogadas!',
-      primary:canCont?[hasB?'+5 jogadas <small style="font-size:14px;opacity:.9">('+boost.moves+')</small>':'+5 jogadas <img src="'+COIN+'" alt="" style="width:22px;height:22px;vertical-align:-5px"> '+COST.moves,cont]:(spec.bonus?['Tentar de novo',()=>{leave(); hideRes(); startLevel(lvl,true);}]:['+5 jogadas: ver anúncio',()=>{ADS.rewarded(ok=>{if(ok)cont();});}]),
+      primary:canCont?[hasB?'+5 jogadas <small style="font-size:14px;opacity:.9">('+boost.moves+')</small>':'+5 jogadas <img src="'+COIN+'" alt="" style="width:22px;height:22px;vertical-align:-5px"> '+price,cont]:(spec.bonus?['Tentar de novo',()=>{leave(); hideRes(); startLevel(lvl,true);}]:['+5 jogadas: ver anúncio',()=>{ADS.rewarded(ok=>{if(ok)cont();});}]),
       secondary:canCont?['Tentar de novo',()=>{leave(); hideRes(); startLevel(lvl,true);}]:(spec.bonus?null:['Tentar de novo',()=>{leave(); hideRes(); startLevel(lvl,true);}]),
       tertiary:()=>{leave(); hideRes(); goMap();}});
   }
@@ -1785,14 +1797,20 @@ function showEpisodeDone(lvl){
 /* MONET: troque 'test' para false e plugue o SDK real em window.GEMMO_ADS / window.GEMMO_IAP (veja README). */
 const MONET={test:true, adSeconds:5};
 const COIN='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><radialGradient id="g" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#FFF3A6"/><stop offset=".45" stop-color="#FFC531"/><stop offset="1" stop-color="#C77A0A"/></radialGradient></defs><circle cx="32" cy="32" r="29" fill="url(#g)" stroke="#8A4F05" stroke-width="4"/><circle cx="32" cy="32" r="20" fill="none" stroke="#B86F0B" stroke-width="3"/><path d="M32 17l4.4 9 9.9 1.4-7.2 7 1.7 9.8L32 39.5l-8.8 4.7 1.7-9.8-7.2-7 9.9-1.4z" fill="#FFF3A6" stroke="#B86F0B" stroke-width="2" stroke-linejoin="round"/></svg>');
-const COST={lives:90, hammer:30, swap:40, moves:30};
+const COST={lives:100, hammer:30, swap:40, moves:50, inf30:120, inf60:200};
+const CONT=[50,100,150,200];            /* +5 jogadas: preço sobe a cada uso na mesma fase (como Royal Match / Candy Crush) */
+const contCost=()=>CONT[Math.min(contN,CONT.length-1)];
+const ADCAP=6;                            /* máximo de anúncios premiados por dia */
+const PIG={cap:600, perWin:8, min:100, price:'R$ 9,90'};
 const PACKS=[
   {id:'c500',coins:500,price:'R$ 4,99'},
-  {id:'c1200',coins:1200,price:'R$ 9,99',tag:'Mais popular',hot:1},
-  {id:'c3200',coins:3200,price:'R$ 24,99',tag:'+30% de bônus'},
-  {id:'c7000',coins:7000,price:'R$ 49,99',tag:'+40% de bônus'}
+  {id:'c1100',coins:1100,price:'R$ 9,99',tag:'+10% de bônus'},
+  {id:'c2400',coins:2400,price:'R$ 19,99',tag:'Mais popular · +20%',hot:1},
+  {id:'c5200',coins:5200,price:'R$ 39,99',tag:'+30% de bônus'},
+  {id:'c11000',coins:11000,price:'R$ 79,99',tag:'Melhor valor · +37%'}
 ];
-const STARTER={id:'starter',price:'R$ 9,90',coins:1000,boost:3};
+const STARTER={id:'starter',price:'R$ 9,90',coins:1000,boost:3,hours:48,minLevel:6};
+const PASS_PRICE='R$ 14,90';
 const DAILY=[20,30,40,50,60,80,'chest'];
 const todayKey=()=>{const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();};
 function updateCoins(){
@@ -1801,7 +1819,9 @@ function updateCoins(){
 }
 /* anúncio premiado: usa window.GEMMO_ADS.showRewarded(cb) se existir; senão, simulação */
 const ADS={
-  rewarded(cb){
+  rewarded(cb0){
+    if(!adsLeft()){toast('Você já viu todos os anúncios de hoje. Volte amanhã!'); return;}
+    const cb=ok=>{ if(ok){adsDay.n++; save();} cb0(ok); };
     if(window.GEMMO_ADS&&window.GEMMO_ADS.showRewarded){ try{window.GEMMO_ADS.showRewarded(ok=>cb(!!ok)); return;}catch(e){} }
     const o=$('adov'), c=$('adClose'); let n=MONET.adSeconds; o.hidden=false; c.disabled=true; c.textContent='Aguarde '+n+'s';
     $('adT').textContent='Anúncio de teste — aqui entra o vídeo premiado.';
@@ -1814,6 +1834,52 @@ function buyPack(id,grant){
   if(window.GEMMO_IAP&&window.GEMMO_IAP.buy){ try{window.GEMMO_IAP.buy(id,ok=>{if(ok){grant();}}); return;}catch(e){} }
   if(MONET.test){ grant(); toast('Compra de teste concluída (nada foi cobrado).'); }
 }
+
+const monthKey=()=>{const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1);};
+function passSync(){ if(pass.m!==monthKey())pass={m:monthKey(),k:0,f:[],p:[],prem:false}; }
+function passReward(i,prem){
+  const chest=i%5===0, r={coins:0,hammer:0,swap:0,moves:0,inf:0,t:''};
+  if(!prem){
+    if(chest){r.coins=60;r.hammer=1;r.t='Baú';}
+    else if(i%3===1){r.coins=15+i;r.t=r.coins+' moedas';}
+    else if(i%3===2){r[['hammer','swap','moves'][(i/3|0)%3]]=1;r.t='Impulsionador';}
+    else {r.coins=20;r.t='20 moedas';}
+  } else {
+    if(i===30){r.coins=400;r.hammer=2;r.swap=2;r.moves=2;r.inf=60;r.t='Baú Real + vidas infinitas 60 min';}
+    else if(chest){r.coins=200;r.hammer=1;r.swap=1;r.moves=1;r.t='Baú Grande';}
+    else if(i===10||i===20){r.inf=15;r.coins=50;r.t='Vidas infinitas 15 min';}
+    else if(i%2===0){r.coins=30+i;r.t=r.coins+' moedas';}
+    else {r[['hammer','swap','moves'][i%3]]=2;r.t='2 impulsionadores';}
+  }
+  return r;
+}
+function passGive(r){ coins+=r.coins; boost.hammer+=r.hammer; boost.swap+=r.swap; boost.moves+=r.moves; if(r.inf){infUntil=Math.max(Date.now(),infUntil)+r.inf*60000; lifeTs=0;} }
+function passClaimable(){ passSync(); let n=0; for(let i=1;i<=Math.min(30,pass.k);i++){ if(!pass.f.includes(i))n++; if(pass.prem&&!pass.p.includes(i))n++; } return n; }
+function openPass(){
+  passSync(); const el=$('passBody'); let h='<p style="margin:0 0 8px;color:#BFE9EE;font:700 14px var(--font-body)">Passe do mês: cada fase vencida dá 1 chave 🗝️. Você tem <b style="color:#fff">'+pass.k+'</b> de 30.</p>';
+  if(!pass.prem)h+='<div class="shop-row hot"><div class="t"><b>Passe do Gemmo</b><small>Libera a trilha premium: baús, impulsionadores em dobro e vidas infinitas</small></div><button class="sbtn gold" data-pa="buy">'+PASS_PRICE+'</button></div>';
+  h+='<div class="pass-h"><span>&nbsp;#</span><span>Grátis</span><span>Premium</span></div>';
+  for(let i=1;i<=30;i++){
+    const f=passReward(i,false), pr=passReward(i,true), ok=pass.k>=i;
+    const cell=(r,done,prem)=>'<span class="pc'+(done?' done':ok&&(!prem||pass.prem)?' go':'')+(prem&&!pass.prem?' lock':'')+'">'+(done?'✓ ':'')+r.t+'</span>';
+    h+='<div class="pass-r'+(i%5===0?' chest':'')+'"><b>'+i+'</b>'+cell(f,pass.f.includes(i),false)+cell(pr,pass.p.includes(i),true)+'</div>';
+  }
+  $('passBody').innerHTML=h;
+  $('passGo').textContent=passClaimable()?'Pegar tudo ('+passClaimable()+')':'Nada para pegar agora'; $('passGo').disabled=!passClaimable();
+  const bb=$('passBody').querySelector('[data-pa="buy"]'); if(bb)bb.onclick=()=>buyPack('pass',()=>{pass.prem=true; save(); openPass(); sfx.coins();});
+  $('pass').hidden=false;
+}
+$('passGo').addEventListener('click',()=>{
+  passSync(); let g={coins:0,hammer:0,swap:0,moves:0,inf:0};
+  for(let i=1;i<=Math.min(30,pass.k);i++){ if(!pass.f.includes(i)){pass.f.push(i); const r=passReward(i,false); ['coins','hammer','swap','moves','inf'].forEach(k=>g[k]+=r[k]);} if(pass.prem&&!pass.p.includes(i)){pass.p.push(i); const r=passReward(i,true); ['coins','hammer','swap','moves','inf'].forEach(k=>g[k]+=r[k]);} }
+  passGive(g); save(); updateCoins(); refreshBoost(); updateLives(); sfx.coins(); toast('+'+g.coins+' moedas'+(g.hammer+g.swap+g.moves?' e impulsionadores':'')+(g.inf?' e vidas infinitas':'')+'!'); openPass();
+});
+$('passX').addEventListener('click',()=>{$('pass').hidden=true; renderShop(); $('shop').hidden=false; updateDot();});
+function updateDot(){ const on=passClaimable()>0||offerActive(); const c=$('mapCoins'); if(c)c.classList.toggle('dot',!!on); }
+function infLeft(){return Math.max(0,infUntil-Date.now());}
+function offerActive(){ if(starterBought()||maxLevel<STARTER.minLevel)return false; if(!offerTs){offerTs=Date.now(); save();} return Date.now()-offerTs<STARTER.hours*3600e3; }
+function adsLeft(){ const k=todayKey(); if(adsDay.d!==k)adsDay={d:k,n:0}; return Math.max(0,ADCAP-adsDay.n); }
+
 let shopFocus=null;
 function openShop(focus){
   shopFocus=focus||null; renderShop(); $('shop').hidden=false;
@@ -1821,21 +1887,26 @@ function openShop(focus){
 }
 function closeShop(){ $('shop').hidden=true; updateLives(); refreshBoost(); updateCoins(); }
 function renderShop(){
-  const row=(o)=>'<div class="shop-row'+(o.hot?' hot':'')+'" data-f="'+(o.f||'')+'"><img class="ic2" alt="" src="'+o.img+'"><div class="t"><b>'+o.t+'</b><small>'+o.s+'</small></div><button class="sbtn '+(o.cls||'')+'" data-a="'+o.a+'">'+o.b+'</button></div>';
+  passSync(); adsLeft();
+  const row=(o)=>'<div class="shop-row'+(o.hot?' hot':'')+'" data-f="'+(o.f||'')+'"><img class="ic2" alt="" src="'+o.img+'"><div class="t"><b>'+o.t+'</b><small>'+o.s+'</small></div><button class="sbtn '+(o.cls||'')+'" data-a="'+o.a+'"'+(o.dis?' disabled':'')+'>'+o.b+'</button></div>';
   const cb=n=>'<img src="'+COIN+'" alt=""> '+n;
   let h='';
+  if(offerActive()){ const left=Math.max(0,STARTER.hours*3600e3-(Date.now()-offerTs)), hh=Math.floor(left/3600e3), mm=Math.floor(left%3600e3/60e3);
+    h+='<div class="shop-s">Oferta de boas-vindas</div>'+row({hot:1,img:IMG_SRC.bstHammer,t:'Pacote do Gemmo',s:STARTER.coins+' moedas + '+STARTER.boost+' de cada impulsionador · acaba em '+hh+'h '+mm+'min',b:STARTER.price,a:'starter'}); }
+  h+='<div class="shop-s">Passe do Gemmo</div>'+row({f:'pass',img:IMG_SRC.starOn,t:'Passe do mês',s:'Chaves '+pass.k+'/30 · '+(pass.prem?'Premium ativo':'trilha grátis ativa')+(passClaimable()?' · '+passClaimable()+' para pegar':''),b:passClaimable()?'Pegar':'Ver',cls:passClaimable()?'':'ad',a:'pass'});
+  if(piggy>0)h+='<div class="shop-s">Cofrinho</div>'+row({img:COIN,t:'Cofrinho do Gemmo',s:piggy+' moedas guardadas'+(piggy<PIG.min?' · quebra a partir de '+PIG.min:' · quebre agora'),b:PIG.price,cls:'gold',a:'piggy',dis:piggy<PIG.min});
   h+='<div class="shop-s">Vidas</div>';
   h+=row({f:'lives',img:IMG_SRC.heart,t:'Encher as vidas',s:'Volta para '+LIFE_MAX+' vidas',b:cb(COST.lives),cls:'gold',a:'lives'});
-  h+=row({img:IMG_SRC.heart,t:'+1 vida grátis',s:'Assista a um anúncio',b:'Ver',cls:'ad',a:'adlife'});
+  h+=row({img:IMG_SRC.heart,t:'Vidas infinitas 30 min',s:infLeft()?'Ativo: restam '+mmss(infLeft()):'Jogue sem perder vidas',b:cb(COST.inf30),cls:'gold',a:'inf30'});
+  h+=row({img:IMG_SRC.heart,t:'Vidas infinitas 60 min',s:'Melhor custo-benefício',b:cb(COST.inf60),cls:'gold',a:'inf60'});
+  h+=row({img:IMG_SRC.heart,t:'+1 vida grátis',s:'Assista a um anúncio · restam '+adsLeft()+' hoje',b:'Ver',cls:'ad',a:'adlife',dis:!adsLeft()});
   h+='<div class="shop-s">Impulsionadores</div>';
   h+=row({f:'hammer',img:IMG_SRC.bstHammer,t:'Martelo',s:'Você tem '+boost.hammer,b:cb(COST.hammer),cls:'gold',a:'hammer'});
   h+=row({f:'swap',img:IMG_SRC.bstSwap,t:'Troca livre',s:'Você tem '+boost.swap,b:cb(COST.swap),cls:'gold',a:'swap'});
   h+=row({f:'moves',img:IMG_SRC.bstMoves,t:'+5 jogadas',s:'Você tem '+boost.moves,b:cb(COST.moves),cls:'gold',a:'moves'});
-  h+=row({img:COIN,t:'Moedas grátis',s:'Assista a um anúncio',b:'+25',cls:'ad',a:'adcoin'});
-  if(!starterBought())h+='<div class="shop-s">Oferta única</div>'+row({hot:1,img:IMG_SRC.bstHammer,t:'Pacote do Gemmo',s:STARTER.coins+' moedas + '+STARTER.boost+' de cada impulsionador',b:STARTER.price,a:'starter'});
+  h+=row({img:COIN,t:'Moedas grátis',s:'Assista a um anúncio · restam '+adsLeft()+' hoje',b:'+25',cls:'ad',a:'adcoin',dis:!adsLeft()});
   h+='<div class="shop-s">Moedas</div>';
   PACKS.forEach(k=>{h+=row({hot:k.hot,img:COIN,t:k.coins+' moedas',s:k.tag||'&nbsp;',b:k.price,a:'pk:'+k.id});});
-  h+=row({img:IMG_SRC.wave,t:'Sem anúncios',s:adsOff?'Já ativo, obrigado!':'Remove anúncios obrigatórios',b:adsOff?'Ativo':'R$ 14,90',a:'noads',cls:adsOff?'':''});
   $('shopBody').innerHTML=h; updateCoins();
   $('shopTest').textContent=MONET.test?'Modo de teste: compras e anúncios são simulados.':'';
   $('shopBody').querySelectorAll('.sbtn').forEach(b=>{b.onclick=()=>shopAct(b.dataset.a);});
@@ -1848,10 +1919,12 @@ function shopAct(a){
   else if(a==='swap')spend(COST.swap,()=>{boost.swap++;});
   else if(a==='moves')spend(COST.moves,()=>{boost.moves++;});
   else if(a==='adlife'){ if(lives>=LIFE_MAX){toast('Suas vidas já estão cheias.');return;} ADS.rewarded(ok=>{if(ok){lives=Math.min(LIFE_MAX,lives+1); if(lives>=LIFE_MAX)lifeTs=0; else if(!lifeTs)lifeTs=Date.now(); save(); renderShop(); updateLives();}}); }
+  else if(a==='pass'){ $('shop').hidden=true; openPass(); }
+  else if(a==='piggy'){ if(piggy<PIG.min)return; buyPack('piggy',()=>{coins+=piggy; toast('Cofrinho quebrado: +'+piggy+' moedas!'); piggy=0; save(); renderShop(); updateCoins(); sfx.coins();}); }
+  else if(a==='inf30'||a==='inf60'){ const m=a==='inf30'?30:60; spend(COST[a],()=>{infUntil=Math.max(Date.now(),infUntil)+m*60000; lifeTs=0;}); }
   else if(a==='adcoin')ADS.rewarded(ok=>{if(ok){coins+=25; save(); renderShop(); updateCoins();}});
   else if(a==='starter')buyPack('starter',()=>{coins+=STARTER.coins; ['hammer','swap','moves'].forEach(k=>boost[k]+=STARTER.boost); try{localStorage.setItem('gemmo_starter','1');}catch(e){} save(); renderShop(); updateCoins(); refreshBoost();});
-  else if(a==='noads'){ if(adsOff)return; buyPack('noads',()=>{adsOff=true; save(); renderShop();}); }
-  else if(a.indexOf('pk:')===0){ const k=PACKS.find(x=>'pk:'+x.id===a); buyPack(k.id,()=>{coins+=k.coins; save(); renderShop(); updateCoins();}); }
+    else if(a.indexOf('pk:')===0){ const k=PACKS.find(x=>'pk:'+x.id===a); buyPack(k.id,()=>{coins+=k.coins; save(); renderShop(); updateCoins();}); }
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.btn,.icon-btn,.bst,.sbtn,.coins,.shop-x');if(b&&!b.disabled){ensureAudio(); try{sfx.click();}catch(x){}}},true);
 $('shopX').addEventListener('click',closeShop);
@@ -1881,15 +1954,18 @@ function tickLives(){
   if(n>0){lives=Math.min(LIFE_MAX,lives+n); lifeTs=lives>=LIFE_MAX?0:lifeTs+n*LIFE_MS; save();}
 }
 function loseLife(){
+  if(infLeft())return;
   tickLives();
   if(lives>=LIFE_MAX)lifeTs=Date.now();
   lives=Math.max(0,lives-1); save(); updateLives();
 }
 function updateLives(){
   if(!$('scrHome').hidden)updateHome();
-  $('mLives').textContent=lives; $('mLifeT').textContent=lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'';
-  $('lives').textContent=lives;
-  $('lifeT').textContent=lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'';
+  const inf=infLeft();
+  $('mLives').textContent=inf?'∞':lives; $('mLifeT').textContent=inf?mmss(inf):(lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'');
+  $('lives').textContent=inf?'∞':lives;
+  $('lifeT').textContent=inf?mmss(inf):(lives<LIFE_MAX&&lifeTs?mmss(LIFE_MS-(Date.now()-lifeTs)):'');
+  try{updateDot();}catch(e){}
   if(noLivesOn){
     if(lives>0){noLivesOn=false; startLevel(level,true);}
     else $('ovText').textContent='Próxima vida em '+mmss(LIFE_MS-(Date.now()-lifeTs))+'.';
@@ -1902,7 +1978,7 @@ function showNoLives(){
   const p=$('ovPrimary'), s2=$('ovSecondary');
   const can=coins>=COST.lives;
   p.innerHTML='Recarregar tudo <img src="'+COIN+'" alt="" style="width:22px;height:22px;vertical-align:-5px"> '+COST.lives; p.onclick=()=>{ if(coins>=COST.lives){coins-=COST.lives; lives=LIFE_MAX; lifeTs=0; save(); updateCoins(); updateLives();} else openShop('lives'); };
-  s2.textContent=adsOff?'Esperar':'Ganhar 1 vida: ver anúncio'; s2.onclick=()=>{ ADS.rewarded(ok=>{if(ok){lives=Math.min(LIFE_MAX,lives+1); if(lives>=LIFE_MAX)lifeTs=0; else if(!lifeTs)lifeTs=Date.now(); save(); updateLives();}}); };
+  s2.textContent='Ganhar 1 vida: ver anúncio (restam '+adsLeft()+')'; s2.onclick=()=>{ ADS.rewarded(ok=>{if(ok){lives=Math.min(LIFE_MAX,lives+1); if(lives>=LIFE_MAX)lifeTs=0; else if(!lifeTs)lifeTs=Date.now(); save(); updateLives();}}); };
   $('overlay').hidden=false; updateLives();
 }
 function toast(msg){
@@ -2331,6 +2407,7 @@ async function enterGame(L){
 }
 
 async function startLevel(L,animate){
+  contN=0;
   busy=true; over=false; selected=null; hintTiles=[]; clearTimeout(hintTimer); movesAtWin=null;
   $('overlay').hidden=true; hideRes();
   setBg(IMG_SRC['map'+EPBG[Math.floor((L-1)/15)%6]]);
@@ -2338,7 +2415,7 @@ async function startLevel(L,animate){
   goals=spec.goals.map(g=>Object.assign({got:0},g));
   boostMode=null; newBoard(); updateHud(); refreshLegend(); refreshBoost();
   tickLives();
-  if(lives<=0){showNoLives(); return;}
+  if(lives<=0&&!infLeft()){showNoLives(); return;}
   
   if(animate){
     const items=[];
@@ -2625,7 +2702,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v66';
+const APP_VER='v67';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
