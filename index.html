@@ -733,8 +733,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=75"></script>
-<script src="sounds.js?v=75"></script>
+<script src="assets.js?v=76"></script>
+<script src="sounds.js?v=76"></script>
 <script>
 (function(){
 'use strict';
@@ -936,6 +936,7 @@ const sfx={
   chip(){ smp('chip',.8); },
   glass(){ if(!smp(Math.random()<.5?'glass':'glass2',.8,.9+Math.random()*.25))glassBreak(.12); },
   lightning(){lightning(); smp('zap',.45,1);},
+  linha(){ const k='whoosh'+(1+Math.floor(Math.random()*3)); if(!smp(k,.9,.97+Math.random()*.08)){lightning(); smp('zap',.45,1);} },
   boom(){boom(); smp('punch',.9,.9);},
   thud(){if(!smp('crate',.8))tone(200,.22,'triangle',.1,0,.45); tone(100,.25,'sine',.05,0,.5);},
   crate(){if(!smp(Math.random()<.5?'crate':'crate2',.9,.9+Math.random()*.2))tone(200,.22,'triangle',.1,0,.45);},
@@ -1491,7 +1492,8 @@ async function removeCells(clear,combo,spawns,preFx){
   updateHud();
   const n=Math.max(1,items.length);
   const pts=items.length*10*combo+live.length*40;
-  if(effects.some(e=>e.kind==='h'||e.kind==='v'||e.kind==='zap'))sfx.lightning();
+  if(effects.some(e=>e.kind==='h'||e.kind==='v'))sfx.linha();
+  else if(effects.some(e=>e.kind==='zap'))sfx.lightning();
   else if(effects.some(e=>e.kind==='ring'))sfx.boom();
   else if(live.length)sfx.special(); else sfx.clear(combo);
   if(combo>=2)showBanner(['','','Legal!','Incrível!','Brilhante!','Fantástico!','Gemástico!'][Math.min(6,combo)]);
@@ -2794,7 +2796,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v75';
+const APP_VER='v76';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
