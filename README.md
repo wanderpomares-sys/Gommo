@@ -14,3 +14,10 @@ Jogo match-3 (estilo Candy Crush) em HTML5 canvas, arquivo único, com o mascote
 - Sons sintetizados e música de fundo com botão para desligar
 
 Debug: abra `index.html#debug`.
+
+## Monetização (v62)
+Economia pronta: moedas, loja, presente diário, vidas/jogadas por moedas ou anúncio premiado.
+Tudo roda em **modo de teste** (`MONET.test=true` no index.html): anúncios e compras são simulados.
+Para ligar de verdade, defina antes do jogo carregar:
+- `window.GEMMO_ADS={showRewarded(cb){ /* mostra o vídeo e chama cb(true) ao concluir */ }}`
+- `window.GEMMO_IAP={buy(id,cb){ /* id: c500,c1200,c3200,c7000,starter,noads; cb(true) se pago */ }}`
