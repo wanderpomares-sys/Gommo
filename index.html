@@ -603,6 +603,7 @@ html{font-synthesis-weight:none}
   <div class="shop-h"><h2>Loja</h2><div class="coins" id="shopCoins" style="cursor:default"><img class="coinimg" alt=""><b>0</b></div><button class="shop-x" id="shopX" type="button" aria-label="Fechar">✕</button></div>
   <div id="shopBody"></div>
   <p class="test-tag" id="shopTest"></p>
+  <p class="test-tag" style="font-size:14px;margin-top:12px">Precisa de ajuda? <a href="mailto:suporte@gemmo.com.br?subject=Ajuda%20Gemmo%20Combo" style="color:#FFE08A;font-weight:800">suporte@gemmo.com.br</a></p>
 </div></div>
 <div id="adov" hidden role="dialog" aria-label="Anúncio"><div class="ad-card">
   <div class="ad-box" id="adBox">Anúncio de teste</div>
@@ -2624,7 +2625,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v65';
+const APP_VER='v66';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
