@@ -733,8 +733,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=72"></script>
-<script src="sounds.js?v=72"></script>
+<script src="assets.js?v=73"></script>
+<script src="sounds.js?v=73"></script>
 <script>
 (function(){
 'use strict';
@@ -906,7 +906,7 @@ function boom(){
 }
 const NOTES=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5];
 const sfx={
-  swap(){if(!smp('swap',.5,1+Math.random()*.08))tone(380,.09,'triangle',.07,0,1.35);},
+  swap(){if(!smp('swap',.6,.95+Math.random()*.12))tone(380,.09,'triangle',.07,0,1.35);},
   bad(){if(!smp('bad',.6))tone(170,.16,'sawtooth',.05,0,.7);},
   click(){smp('click',.55,.95+Math.random()*.1);},
   back(){smp('back',.55);},
@@ -2793,7 +2793,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v72';
+const APP_VER='v73';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
