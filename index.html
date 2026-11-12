@@ -490,6 +490,18 @@ html{font-synthesis-weight:none}
 .map .bar .coins{font-size:16px}
 .map .bar .coins img{width:22px;height:22px}
 .map .bar .btn{padding:6px 10px}
+.prerow{display:flex; gap:8px; width:100%; margin-top:4px}
+.pre{flex:1; border-radius:16px; padding:6px 4px 5px; background:rgba(0,0,0,.28); border:2px solid rgba(232,182,74,.45); color:#fff; font:800 13px/1.15 var(--font-display); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px}
+.pre .em{font-size:26px; line-height:1}
+.pre small{font:700 12px var(--font-body); color:#FFE08A; display:flex; align-items:center; gap:3px}
+.pre small img{width:15px; height:15px}
+.pre.on{background:linear-gradient(180deg,rgba(95,211,95,.45),rgba(20,89,27,.5)); border-color:#7CFF7C; box-shadow:0 0 0 2px #7CFF7C55}
+.pre-t{width:100%; text-align:left; font:800 12px var(--font-body); letter-spacing:.08em; text-transform:uppercase; color:#FFE08A; margin-top:4px}
+#bk{position:fixed; inset:0; z-index:95; display:grid; place-items:safe center; padding:12px; overflow-y:auto; background:radial-gradient(circle at 50% 20%,rgba(14,80,98,.94),rgba(3,14,22,.98))}
+#bk[hidden]{display:none}
+#bk textarea{width:100%; min-height:110px; border-radius:12px; border:2px solid #E8B64A; background:#06303c; color:#fff; font:12px/1.3 monospace; padding:8px; resize:vertical; box-sizing:border-box}
+#bk p{margin:8px 0; color:#BFE9EE; font:600 14px/1.35 var(--font-body)}
+#bk .sbtn{margin:6px 0 0; width:100%}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -614,9 +626,15 @@ html{font-synthesis-weight:none}
   <div class="shop-h"><h2>Loja</h2><div class="coins" id="shopCoins" style="cursor:default"><img class="coinimg" alt=""><b>0</b></div><button class="shop-x" id="shopX" type="button" aria-label="Fechar">✕</button></div>
   <div id="shopBody"></div>
   <p class="test-tag" id="shopTest"></p>
-  <p class="test-tag" style="font-size:14px;margin-top:12px">Precisa de ajuda? <a href="mailto:suporte@gemmo.com.br?subject=Ajuda%20Gemmo%20Combo" style="color:#FFE08A;font-weight:800">suporte@gemmo.com.br</a></p>
+  <p class="test-tag" style="font-size:14px;margin-top:12px"><a href="#" id="bkOpen" style="color:#FFE08A;font-weight:800">Salvar / restaurar progresso</a></p>
+  <p class="test-tag" style="font-size:14px;margin-top:6px">Precisa de ajuda? <a href="mailto:suporte@gemmo.com.br?subject=Ajuda%20Gemmo%20Combo" style="color:#FFE08A;font-weight:800">suporte@gemmo.com.br</a></p>
 </div></div>
 <div id="pass" hidden role="dialog" aria-label="Passe do Gemmo"><div class="shop-card"><div class="shop-h"><h2>Passe do Gemmo</h2><button class="shop-x" id="passX" type="button" aria-label="Fechar">✕</button></div><div id="passBody"></div><button class="sbtn gold" id="passGo" type="button" style="margin:12px auto 0;min-width:220px;font-size:20px;padding:12px 16px">Pegar tudo</button></div></div>
+<div id="bk" hidden role="dialog" aria-label="Backup do progresso"><div class="shop-card"><div class="shop-h"><h2>Backup</h2><button class="shop-x" id="bkX" type="button" aria-label="Fechar">✕</button></div>
+<p><b style="color:#fff">Salvar:</b> copie o código e guarde (mensagem para você mesmo, notas). Serve para levar o progresso a outro aparelho ou endereço.</p>
+<textarea id="bkOut" readonly></textarea><button class="sbtn gold" id="bkCopy" type="button">Copiar código</button>
+<p style="margin-top:16px"><b style="color:#fff">Restaurar:</b> cole um código salvo. Isso substitui o progresso deste aparelho.</p>
+<textarea id="bkIn" placeholder="Cole o código aqui"></textarea><button class="sbtn" id="bkGo" type="button">Restaurar progresso</button><p id="bkMsg" style="text-align:center;font-weight:800"></p></div></div>
 <div id="adov" hidden role="dialog" aria-label="Anúncio"><div class="ad-card">
   <div class="ad-box" id="adBox">Anúncio de teste</div>
   <div class="ad-t" id="adT"></div>
@@ -1880,6 +1898,43 @@ function infLeft(){return Math.max(0,infUntil-Date.now());}
 function offerActive(){ if(starterBought()||maxLevel<STARTER.minLevel)return false; if(!offerTs){offerTs=Date.now(); save();} return Date.now()-offerTs<STARTER.hours*3600e3; }
 function adsLeft(){ const k=todayKey(); if(adsDay.d!==k)adsDay={d:k,n:0}; return Math.max(0,ADCAP-adsDay.n); }
 
+/* ---------- impulsionadores antes da fase ---------- */
+const PRE={h:{c:40,t:'Listrada',e:'⚡'},bomb:{c:60,t:'Bomba',e:'💣'},m3:{c:35,t:'+3 jogadas',e:'➕'}};
+let preSel={};
+function preTotal(){return Object.keys(preSel).filter(k=>preSel[k]).reduce((a,k)=>a+PRE[k].c,0);}
+function applyPre(){
+  const ks=Object.keys(preSel).filter(k=>preSel[k]); if(!ks.length)return true;
+  const tot=preTotal(); if(coins<tot){toast('Moedas insuficientes para os impulsionadores escolhidos.'); return false;}
+  coins-=tot;
+  ks.forEach(k=>{
+    if(k==='m3'){moves+=3; return;}
+    const cs=[]; for(let r=2;r<N;r++)for(let c=0;c<N;c++){const t=grid[r][c]; if(t&&t.type>=0&&!t.special&&r>=colTop[c])cs.push(t);}
+    if(cs.length)cs[rnd(cs.length)].special=(k==='h'?(Math.random()<.5?'h':'v'):'bomb');
+  });
+  save(); updateCoins(); updateHud(); return true;
+}
+function buildPreRow(host){
+  preSel={}; if(level<5||(spec&&spec.bonus))return;
+  const wrap=document.createElement('div'); wrap.style.width='100%';
+  const draw=()=>{ wrap.innerHTML='<div class="pre-t">Comece com um reforço</div><div class="prerow">'+Object.keys(PRE).map(k=>'<button type="button" class="pre'+(preSel[k]?' on':'')+'" data-k="'+k+'"><span class="em">'+PRE[k].e+'</span>'+PRE[k].t+'<small><img src="'+COIN+'" alt="">'+PRE[k].c+'</small></button>').join('')+'</div>';
+    wrap.querySelectorAll('.pre').forEach(b=>{b.onclick=()=>{preSel[b.dataset.k]=!preSel[b.dataset.k]; try{sfx.click();}catch(e){} draw(); const P=$('rPrimary'); const t=preTotal(); P.innerHTML=t?'Jogar <img src="'+COIN+'" alt="" style="width:22px;height:22px;vertical-align:-5px"> '+t:'Jogar';};}); };
+  draw(); host.appendChild(wrap);
+}
+/* ---------- backup do progresso ---------- */
+function bkCode(){ try{ const o={g:localStorage.getItem('gemmo'),st:localStorage.getItem('gemmo_starter')}; return 'GEMMO1.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }catch(e){return '';} }
+function bkOpen(){ $('bkOut').value=bkCode(); $('bkIn').value=''; $('bkMsg').textContent=''; $('bk').hidden=false; }
+$('bkOpen').addEventListener('click',e=>{e.preventDefault(); bkOpen();});
+$('bkX').addEventListener('click',()=>{$('bk').hidden=true;});
+$('bkCopy').addEventListener('click',()=>{ const t=$('bkOut'); t.select(); try{ if(navigator.clipboard)navigator.clipboard.writeText(t.value); else document.execCommand('copy'); $('bkMsg').textContent='Código copiado!'; }catch(e){ $('bkMsg').textContent='Selecione e copie o código acima.'; } });
+$('bkGo').addEventListener('click',()=>{
+  const m=$('bkMsg'); try{
+    const v=$('bkIn').value.trim(); if(v.indexOf('GEMMO1.')!==0)throw 0;
+    const o=JSON.parse(decodeURIComponent(escape(atob(v.slice(7))))); const g=JSON.parse(o.g); if(!g||typeof g.level!=='number')throw 0;
+    localStorage.setItem('gemmo',o.g); if(o.st)localStorage.setItem('gemmo_starter',o.st);
+    m.style.color='#7CFF7C'; m.textContent='Progresso restaurado! Reiniciando…'; setTimeout(()=>location.reload(),900);
+  }catch(e){ m.style.color='#ff9a9a'; m.textContent='Código inválido. Confira se copiou inteiro.'; }
+});
+
 let shopFocus=null;
 function openShop(focus){
   shopFocus=focus||null; renderShop(); $('shop').hidden=false;
@@ -2179,7 +2234,8 @@ function showGoal(){
   }).join('');
   $('rInfo').innerHTML='<span class="obj-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg>OBJETIVO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1.500 7-6.500-3.500L5.500 21 7 14 2 9l7-1z" fill="#fff" opacity=".9"/></svg></span>'+(level>10?'<span class="ep-tag">Episódio '+(Math.floor((level-1)/15)+1)+' · '+EPNAMES[Math.floor((level-1)/15)%EPNAMES.length][0]+'</span>':'')+gp+'<span class="rpill" style="margin-top:4px">'+moves+' jogadas</span>'+(NEWMSG[level]?'<span class="rpill newp">'+NEWMSG[level]+'</span>':'');
   const P=$('rPrimary'), S=$('rSecondary'), T=$('rTertiary');
-  P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{hideRes(); runTuts(()=>{busy=false; scheduleHint();});};
+  P.className='btn go'; P.textContent='Jogar'; P.onclick=()=>{ if(!applyPre())return; hideRes(); runTuts(()=>{busy=false; scheduleHint();}); };
+  try{buildPreRow($('rInfo'));}catch(e){}
   S.hidden=true; T.onclick=()=>{hideRes(); goMap();}; decorateRes();
   r.hidden=false; r.scrollTop=0;
 }
@@ -2702,7 +2758,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v67';
+const APP_VER='v68';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
