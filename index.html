@@ -733,8 +733,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=74"></script>
-<script src="sounds.js?v=74"></script>
+<script src="assets.js?v=75"></script>
+<script src="sounds.js?v=75"></script>
 <script>
 (function(){
 'use strict';
@@ -819,6 +819,7 @@ function smp(k,vol,rate,delay){
   if(!AC||!soundOn||!SMP[k])return false;
   try{const t=AC.currentTime+(delay||0), b=AC.createBufferSource(), g=AC.createGain(); b.buffer=SMP[k]; b.playbackRate.value=rate||1; g.gain.value=vol==null?.8:vol; b.connect(g); g.connect(OUT()); b.start(t); return true;}catch(e){return false;}
 }
+const SND=1.7;
 /* ---------- música de fundo (arquivo MP3 em loop) ---------- */
 const MUSIC_URL='music.mp3?v=72', MUS_VOL=.32;
 const MUS={el:null,playing:false,fade:0};
@@ -2793,7 +2794,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v74';
+const APP_VER='v75';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
