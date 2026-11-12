@@ -32,3 +32,10 @@ Para ligar de verdade, defina antes do jogo carregar:
 `index.html` (jogo, ~230 KB) + `assets.js` (imagens em base64) + `sounds.js` (sons). Páginas leves permitem que o WhatsApp gere o cartão de prévia.
 Se mudar `assets.js` ou `sounds.js`, aumente o `?v=` nas tags `<script>` do index.html.
 Para o Artifact de arquivo único: `python3 build_artifact.py saida.html`.
+
+## Estatísticas (GoatCounter)
+1. Crie a conta em goatcounter.com (o "code" vira CODIGO.goatcounter.com).
+2. No index.html, preencha `const GC_CODE='CODIGO';` e suba. Vazio = nada é enviado.
+3. Só conta em gemmo.com.br. Testes e o Artifact não entram.
+Telas (Páginas): /tela/mapa, loja, passe, corrida, diario, sem-vidas, boas-vindas, backup.
+Eventos: /jogo/fase-iniciada, /jogo/faixa-1-10 (progresso), /jogo/vitoria, /jogo/derrota, /jogo/martelo, /anuncio/pedido, /loja/compra/ID, /tutorial/NOME, /app/instalou.

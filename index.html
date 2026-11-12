@@ -733,8 +733,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=73"></script>
-<script src="sounds.js?v=73"></script>
+<script src="assets.js?v=74"></script>
+<script src="sounds.js?v=74"></script>
 <script>
 (function(){
 'use strict';
@@ -2793,7 +2793,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v73';
+const APP_VER='v74';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
@@ -2899,6 +2899,42 @@ $('btnMapPlay').addEventListener('click',()=>walkTo(maxLevel));
 $('btnToMap').addEventListener('click',goMap);
 $('btnPalace').addEventListener('click',goHome);
 $('btnHome').addEventListener('click',goMap);
+/* ---------- estatísticas (GoatCounter: sem cookies, sem dados pessoais) ----------
+   Preencha GC_CODE com o nome da sua conta (https://CODIGO.goatcounter.com). Vazio = nada é enviado.
+   Só conta no domínio gemmo.com.br (testes e Artifact não entram). */
+const GC_CODE='';
+const GC_ON=!!GC_CODE&&(/(^|\.)gemmo\.com\.br$/.test(location.hostname)||/gcTest/.test(location.hash));
+const GC_Q=[];
+function track(path,title,isEvent){
+  if(!GC_ON)return;
+  const d={path,title:title||path,event:!!isEvent};
+  try{ if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count(d); else GC_Q.push(d); }catch(e){}
+}
+if(GC_ON){
+  window.goatcounter={no_onload:false};
+  const sc=document.createElement('script'); sc.async=true; sc.dataset.goatcounter='https://'+GC_CODE+'.goatcounter.com/count'; sc.dataset.goatcounterSettings='{"no_onload":true}';
+  sc.src='https://gc.zgo.at/count.js'; sc.onload=()=>{ try{ window.goatcounter.count({path:'/tela/abertura'}); GC_Q.splice(0).forEach(d=>window.goatcounter.count(d)); }catch(e){} };
+  document.head.appendChild(sc);
+}
+const lvBucket=n=>{n=+n||0; const a=Math.floor((n-1)/10)*10+1; return a+'-'+(a+9);};
+(function(){
+  const wrap=(name,fn)=>{ try{ fn(); }catch(e){} };
+  wrap('goMap',()=>{ const f=goMap; goMap=function(){ track('/tela/mapa','Mapa'); return f.apply(this,arguments); }; });
+  wrap('openShop',()=>{ const f=openShop; openShop=function(x){ track('/tela/loja','Loja'); return f.apply(this,arguments); }; });
+  wrap('openPass',()=>{ const f=openPass; openPass=function(){ track('/tela/passe','Passe do mês'); return f.apply(this,arguments); }; });
+  wrap('openRace',()=>{ const f=openRace; openRace=function(){ track('/tela/corrida','Corrida de estrelas'); return f.apply(this,arguments); }; });
+  wrap('showDaily',()=>{ const f=showDaily; showDaily=function(){ track('/tela/diario','Prêmio diário'); return f.apply(this,arguments); }; });
+  wrap('showNoLives',()=>{ const f=showNoLives; showNoLives=function(){ track('/tela/sem-vidas','Sem vidas'); return f.apply(this,arguments); }; });
+  wrap('showWelcome',()=>{ const f=showWelcome; showWelcome=function(){ track('/tela/boas-vindas','Boas-vindas'); return f.apply(this,arguments); }; });
+  wrap('bkOpen',()=>{ const f=bkOpen; bkOpen=function(){ track('/tela/backup','Backup'); return f.apply(this,arguments); }; });
+  wrap('showTut',()=>{ const f=showTut; showTut=function(k){ track('/tutorial/'+k,'Tutorial '+k,true); return f.apply(this,arguments); }; });
+  wrap('startLevel',()=>{ const f=startLevel; startLevel=function(L){ track('/jogo/fase-iniciada','Fase iniciada',true); track('/jogo/faixa-'+lvBucket(L),'Faixa '+lvBucket(L),true); return f.apply(this,arguments); }; });
+  wrap('showResult',()=>{ const f=showResult; showResult=function(o){ try{ track('/jogo/'+(o&&o.win?'vitoria':'derrota'),o&&o.win?'Vitória':'Derrota',true); }catch(e){} return f.apply(this,arguments); }; });
+  wrap('buyPack',()=>{ const f=buyPack; buyPack=function(id){ track('/loja/compra/'+id,'Compra '+id,true); return f.apply(this,arguments); }; });
+  wrap('useHammer',()=>{ const f=useHammer; useHammer=function(){ track('/jogo/martelo','Martelo',true); return f.apply(this,arguments); }; });
+  wrap('ADS',()=>{ const f=ADS.rewarded; ADS.rewarded=function(cb){ track('/anuncio/pedido','Anúncio premiado',true); return f.apply(ADS,arguments); }; });
+  window.addEventListener('appinstalled',()=>track('/app/instalou','App instalado',true));
+})();
 if(location.hash==='#debug')window.__gm={raceForce(v){raceForce=v;},openRace,showTut,musState(){return MUS.el?{paused:MUS.el.paused,t:MUS.el.currentTime,v:MUS.el.volume,err:MUS.el.error&&MUS.el.error.code}:null;},smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
