@@ -723,8 +723,8 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=69"></script>
-<script src="sounds.js?v=69"></script>
+<script src="assets.js?v=70"></script>
+<script src="sounds.js?v=70"></script>
 <script>
 (function(){
 'use strict';
@@ -2258,6 +2258,19 @@ const TUTS={
   crate:{t:'Caixa',txt:'As caixas não se mexem. Combine gemas <u>do lado delas</u> para quebrar!',
     caps:['Troque as gemas','Combine ao lado da caixa','A caixa quebrou!'],
     mods:[[2,0,0],[2,1,0],[2,3,-2]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2]],crate:[2,3]},
+  ice2:{t:'Gelo duplo',txt:'Este gelo é <u>grosso</u>: ele tem <u>2 camadas</u>. Combine a gema <u>duas vezes</u> para quebrar tudo!',
+    caps:['Gelo grosso: 2 camadas','1ª combinação: o gelo racha','Combine de novo para quebrar!'],thick:1,
+    mods:[[2,0,0],[2,1,0]],ice:[[2,0],[2,1],[2,2]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2]]},
+  crate2:{t:'Caixa reforçada',txt:'A caixa com <u>borda dourada</u> aguenta <u>2 batidas</u>. Combine ao lado dela <u>duas vezes</u>!',
+    caps:['Caixa reforçada (borda dourada)','1ª batida: ela racha','Bata de novo para quebrar!'],
+    mods:[[2,0,0],[2,1,0],[2,3,-2]],swap:[[1,2],[2,2]],match:[[2,0],[2,1],[2,2]],crate2:[2,3]},
+  use:{t:'Ative peças especiais',txt:'Algumas fases pedem para <u>ativar peças especiais</u>. Troque uma peça especial de lugar e ela <u>dispara</u>!',
+    caps:['Ache uma peça especial','Troque ela de lugar','Ela dispara e limpa a linha!'],
+    cells:[[2,1,3,'h']],swap:[[2,1],[2,2]],src:[2,2],eff:'row',capMap:{hint:0,swap:1,hold:1,eff:2,fall2:2,end:2}},
+  chain:{t:'Reação em cadeia',txt:'Quando as gemas caem e <u>formam outra combinação sozinhas</u>, é um <u>combo em cadeia</u>! Cada combo seguido conta.',
+    caps:['Faça uma combinação','As gemas caem e...','Um 2º combo sozinho!'],
+    mods:[[4,0,0],[4,1,0],[4,3,0],[3,0,1],[3,1,4],[3,2,4]],swap:[[4,2],[4,3]],match:[[4,0],[4,1],[4,2]],chain:[[4,1],[4,2],[4,3]],
+    capMap:{hint:0,swap:0,pop:1,fall:1,pop2:2,fall3:2,end:2}},
   drop:{t:'Estrela',txt:'Leve as estrelas <u>até o fundo</u> do tabuleiro: combine as gemas de baixo para ela descer!',
     caps:['Troque as gemas','Combine embaixo da estrela','A estrela chegou ao fundo!'],
     mods:[[4,0,0],[4,1,0],[4,3,0],[3,2,-3]],swap:[[4,2],[4,3]],match:[[4,0],[4,1],[4,2]],star:1}
@@ -2299,6 +2312,7 @@ function tutBuild(T){
       X.G1b=G1.map(r=>r.slice()); X.G1b[sp[0]][sp[1]]=X.spawnCell;
     } else X.G1b=G1;
     if(T.crate)set.add(T.crate.join(',')); X.mset=set; X.a1=tClear(X.G1b,set); cur=X.a1.G;
+    if(T.chain){ X.mset2=new Set(T.chain.map(q=>q.join(','))); X.a1b=tClear(cur,X.mset2); cur=X.a1b.G; }
   }
   X.G2=cur;
   if(T.eff){
@@ -2312,8 +2326,8 @@ function tutBuild(T){
     else if(T.eff==='cross3'){for(let r=sr-1;r<=sr+1;r++)for(let c=0;c<N5;c++)add(r,c); for(let c=sc2-1;c<=sc2+1;c++)for(let r=0;r<N5;r++)add(r,c);}
     X.eset=e; X.a2=tClear(cur,e);
   }
-  const D={hint:1.5,swap:.55,pop:.65,fall:.6,hold:1.4,eff:.95,fall2:.65,end:1.5};
-  const order=['hint','swap']; if(T.match)order.push('pop','fall'); if(T.eff)order.push('hold','eff','fall2'); order.push('end');
+  const D={hint:1.5,swap:.55,pop:.65,fall:.6,pop2:.65,fall3:.6,hold:1.4,eff:.95,fall2:.65,end:1.5};
+  const order=['hint','swap']; if(T.match)order.push('pop','fall'); if(T.chain)order.push('pop2','fall3'); if(T.eff)order.push('hold','eff','fall2'); order.push('end');
   let t0=0; order.forEach(n=>{X.segs.push({n,t0,d:D[n]}); t0+=D[n];}); X.total=t0;
   return X;
 }
@@ -2347,6 +2361,7 @@ function tutDraw(g,X,t,W){
       if(X.mset.has(k)){o.s=1+.45*tEase(p); o.a=1-tEase(p);}
       if(X.spawnPos&&r===X.spawnPos[0]&&c===X.spawnPos[1]){o.s=p<.35?1+.1*p:.4+.75*tBack((p-.35)/.65); }
     });
+    if(T.crate2){const q=X.G1b[T.crate2[0]][T.crate2[1]]; items.forEach(o=>{if(o.cell===q){o.dx=Math.sin(p*40)*.06*(1-p);}});}
     if(T.crate){const q=X.G1b[T.crate[0]][T.crate[1]]; /* caixa quebra: some com tremor */ items.forEach(o=>{if(o.cell===q){o.a=1-tEase(p); o.s=1+.25*p; o.dx=Math.sin(p*40)*.06;}});}
     X.mset.forEach(k=>{const [r,c]=k.split(',').map(Number); overlays.push({k:'burst',x:cx(c),y:cy(r),p});});
     if(X.spawnPos&&p>.3)overlays.push({k:'burst',x:cx(X.spawnPos[1]),y:cy(X.spawnPos[0]),p:(p-.3)/.7,big:1});
@@ -2354,6 +2369,14 @@ function tutDraw(g,X,t,W){
   } else if(n==='fall'||n==='fall2'){
     const a=n==='fall'?X.a1:X.a2, e=tBack(Math.min(1,p*1.05));
     a.moves.forEach(m=>{items.push({cell:m.cell,r:m.fr+(m.tr-m.fr)*(m.fr===m.tr?0:Math.min(1,e)),c:m.c,s:1,a:m.fresh?Math.min(1,p*3):1});});
+    iceA=0;
+  } else if(n==='pop2'){
+    place(X.a1.G,(o,r,c)=>{ if(X.mset2.has(r+','+c)){o.s=1+.45*tEase(p); o.a=1-tEase(p);} });
+    X.mset2.forEach(k=>{const [r,c]=k.split(',').map(Number); overlays.push({k:'burst',x:cx(c),y:cy(r),p});});
+    iceA=0;
+  } else if(n==='fall3'){
+    const e=tBack(Math.min(1,p*1.05));
+    X.a1b.moves.forEach(m=>{items.push({cell:m.cell,r:m.fr+(m.tr-m.fr)*(m.fr===m.tr?0:Math.min(1,e)),c:m.c,s:1,a:m.fresh?Math.min(1,p*3):1});});
     iceA=0;
   } else if(n==='hold'){
     place(X.G2,(o,r,c)=>{ if(r===X.src[0]&&c===X.src[1])o.s=pulse; });
@@ -2374,7 +2397,7 @@ function tutDraw(g,X,t,W){
     iceA=0;
   }
   // gelo
-  const drawIce=(r,c,a)=>{ if(a<=0)return; g.save(); g.globalAlpha=a; const x=c*cs,y=r*cs; rrPath(g,x+3,y+3,cs-6,cs-6,12); g.fillStyle='rgba(190,235,255,.5)'; g.fill(); g.lineWidth=4; g.strokeStyle='rgba(255,255,255,.9)'; g.stroke(); g.lineWidth=3; g.strokeStyle='rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(x+cs*.25,y+cs*.78); g.lineTo(x+cs*.5,y+cs*.3); g.stroke(); g.restore(); };
+  const drawIce=(r,c,a,thick)=>{ if(a<=0)return; g.save(); g.globalAlpha=a; const x=c*cs,y=r*cs; if(thick){ rrPath(g,x+1,y+1,cs-2,cs-2,14); g.lineWidth=7; g.strokeStyle='rgba(140,210,255,.95)'; g.stroke(); g.fillStyle='rgba(150,215,255,.35)'; g.fill(); } rrPath(g,x+3,y+3,cs-6,cs-6,12); g.fillStyle='rgba(190,235,255,.5)'; g.fill(); g.lineWidth=4; g.strokeStyle='rgba(255,255,255,.9)'; g.stroke(); g.lineWidth=3; g.strokeStyle='rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(x+cs*.25,y+cs*.78); g.lineTo(x+cs*.5,y+cs*.3); g.stroke(); g.restore(); };
   // gemas
   const star=(n==='end'||n==='fall')&&T.star;
   items.forEach(o=>{
@@ -2382,7 +2405,14 @@ function tutDraw(g,X,t,W){
     g.drawImage(tspr(o.cell.ty,o.cell.sp,S),(o.c+(o.dx||0))*cs+(cs-w)/2,o.r*cs+(cs-w)/2,w,w); g.restore();
   });
   if(X.ice.size){
-    X.ice.forEach(k=>{const [r,c]=k.split(',').map(Number); let a=1; if(n==='hint'||n==='swap')a=1; else if(n==='pop')a=iceA; else a=0; drawIce(r,c,a);});
+    X.ice.forEach(k=>{const [r,c]=k.split(',').map(Number); if(T.thick){ if(n==='hint'||n==='swap')drawIce(r,c,1,true); else if(n==='pop'){drawIce(r,c,1,false); drawIce(r,c,iceA,true);} else drawIce(r,c,1,false); return; } let a=1; if(n==='hint'||n==='swap')a=1; else if(n==='pop')a=iceA; else a=0; drawIce(r,c,a);});
+  }
+  if(T.crate2){
+    const [cr,cc]=T.crate2, x=cc*cs, y=cr*cs, cracked=!(n==='hint'||n==='swap'||(n==='pop'&&p<.3));
+    g.save(); g.lineJoin='round';
+    if(!cracked){ rrPath(g,x+2,y+2,cs-4,cs-4,10); g.lineWidth=6; g.strokeStyle='#FFD35A'; g.stroke(); }
+    else { g.lineWidth=4; g.strokeStyle='rgba(40,20,5,.85)'; g.beginPath(); g.moveTo(x+cs*.55,y+cs*.12); g.lineTo(x+cs*.42,y+cs*.38); g.lineTo(x+cs*.6,y+cs*.52); g.lineTo(x+cs*.4,y+cs*.88); g.stroke(); }
+    g.restore();
   }
   // brilho da estrela chegando
   if(star&&n==='end'){ const pc=.5+.5*Math.sin(t*7); g.save(); g.globalAlpha=.55*pc; const gr=g.createRadialGradient(cx(2),cy(4),4,cx(2),cy(4),cs*.9); gr.addColorStop(0,'#fff6b0'); gr.addColorStop(1,'rgba(255,230,120,0)'); g.fillStyle=gr; g.fillRect(0,cs*3,W,cs*2); g.restore(); for(let i=0;i<6;i++){const an=i*1.05+t*2, rr=cs*(.5+.15*Math.sin(t*5+i)); g.fillStyle='rgba(255,255,255,.9)'; g.beginPath(); g.arc(cx(2)+Math.cos(an)*rr,cy(4)+Math.sin(an)*rr,5,0,7); g.fill();} }
@@ -2445,6 +2475,10 @@ function pendTuts(){
   if(spec&&spec.ice&&spec.ice.length&&need('ice'))q.push('ice');
   if(spec&&spec.crates&&spec.crates.length&&need('crate'))q.push('crate');
   if(goals.some(x=>x.k==='drop')&&need('drop'))q.push('drop');
+  if(spec&&spec.ice&&spec.ice.some(i=>i[2]>1)&&need('ice2'))q.push('ice2');
+  if(spec&&spec.crateHp>1&&spec.crates&&spec.crates.length&&need('crate2'))q.push('crate2');
+  if(goals.some(x=>x.k==='use')&&need('use'))q.push('use');
+  if(goals.some(x=>x.k==='chain')&&need('chain'))q.push('chain');
   // jogador que já passou das fases de liberação: só mostra a mais nova de cada vez para não encher
   return q.slice(0,2);
 }
@@ -2755,7 +2789,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v69';
+const APP_VER='v70';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
@@ -2861,7 +2895,7 @@ $('btnMapPlay').addEventListener('click',()=>walkTo(maxLevel));
 $('btnToMap').addEventListener('click',goMap);
 $('btnPalace').addEventListener('click',goHome);
 $('btnHome').addEventListener('click',goMap);
-if(location.hash==='#debug')window.__gm={smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
+if(location.hash==='#debug')window.__gm={showTut,smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();
