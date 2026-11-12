@@ -27,3 +27,8 @@ Para ligar de verdade, defina antes do jogo carregar:
 - Cofrinho (+8 moedas por fase vencida, até 600; quebra por R$ 9,90), Passe do Gemmo mensal (30 passos, trilha grátis + premium R$ 14,90), vidas infinitas 30/60 min, oferta de boas-vindas de 48 h a partir da fase 6.
 - Só anúncios premiados e opcionais (máx. 6 por dia). Sem anúncios forçados.
 - Pacotes de moedas: R$ 4,99 a R$ 79,99. Tudo em modo de teste até ligar `GEMMO_ADS` / `GEMMO_IAP`.
+
+## Estrutura (v69)
+`index.html` (jogo, ~230 KB) + `assets.js` (imagens em base64) + `sounds.js` (sons). Páginas leves permitem que o WhatsApp gere o cartão de prévia.
+Se mudar `assets.js` ou `sounds.js`, aumente o `?v=` nas tags `<script>` do index.html.
+Para o Artifact de arquivo único: `python3 build_artifact.py saida.html`.
