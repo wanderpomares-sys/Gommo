@@ -532,6 +532,7 @@ html{font-synthesis-weight:none}
   <img id="splashBg" alt="" aria-hidden="true">
   <img id="splashImg" alt="Gemmo Combo">
   <div class="tap">Toque para jogar</div>
+  <a class="privlink" href="privacidade.html" onclick="event.stopPropagation()" style="position:absolute;bottom:max(10px,env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font:700 13px var(--font-body);color:#fff;opacity:.85;text-decoration:underline;text-shadow:0 1px 6px rgba(0,0,0,.7)">Privacidade</a>
 </section>
 
 <section class="scr map" id="scrMap" hidden>
@@ -561,6 +562,7 @@ html{font-synthesis-weight:none}
   </div>
   <button class="btn primary play" id="btnPlay" type="button">Jogar fase 1</button>
   <button class="btn play" id="btnToMap" type="button" style="min-height:46px;font-size:16px">Ver mapa</button>
+  <a class="privlink" href="privacidade.html" style="display:block;text-align:center;margin:10px 0 2px;font:700 14px var(--font-body);color:var(--muted);text-decoration:underline">Privacidade</a>
 </section>
 
 <main class="app" id="scrGame" hidden>
@@ -2909,6 +2911,7 @@ const GC_CODE='';
 const GC_ON=!!GC_CODE&&(/(^|\.)gemmo\.com\.br$/.test(location.hostname)||/gcTest/.test(location.hash));
 const GC_Q=[];
 function track(path,title,isEvent){
+  try{ if(window.gemmoGA)window.gemmoGA(path,title,isEvent); }catch(e){}
   if(!GC_ON)return;
   const d={path,title:title||path,event:!!isEvent};
   try{ if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count(d); else GC_Q.push(d); }catch(e){}
@@ -2942,4 +2945,30 @@ if(location.hash==='#debug')window.__gm={raceForce(v){raceForce=v;},openRace,sho
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();
+</script><script>
+/* ===== Google Analytics (GA4) — medição anônima de uso, sempre ligada (descrita em privacidade.html).
+   Telas e eventos vêm do track() do jogo. Nunca envia dados pessoais. ===== */
+(function(){
+  var GA_ID = 'G-776C53RGP8';
+  if(!GA_ID) return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  window.gemmoGA = function(path, title, isEvent){
+    if(!/(^|\.)gemmo\.com\.br$/.test(location.hostname)) return;
+    if(isEvent){ gtag('event', String(path).split('/').pop().replace(/-/g,'_'), { grupo: String(path).split('/')[1] || '' }); }
+    else { gtag('event', 'page_view', { page_title: title || path, page_location: location.origin + path }); }
+  };
+  window.addEventListener('load', function(){
+    if(!/(^|\.)gemmo\.com\.br$/.test(location.hostname)) return;
+    var sc = document.createElement('script'); sc.async = true;
+    sc.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(sc);
+    gtag('js', new Date());
+    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+    gtag('config', GA_ID, { anonymize_ip: true, allow_google_signals: false, allow_ad_personalization_signals: false,
+      page_location: location.origin + location.pathname, page_referrer: '',
+      user_properties: { modo: standalone ? 'app_instalado' : 'navegador' } });
+  });
+})();
 </script>
+
