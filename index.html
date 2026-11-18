@@ -735,8 +735,9 @@ html{font-synthesis-weight:none}
     </div>
   </div>
 </div>
-<script src="assets.js?v=78"></script>
-<script src="sounds.js?v=78"></script>
+<script src="assets.js?v=79"></script>
+<script src="sounds.js?v=79"></script>
+<script src="i18n.js?v=79"></script>
 <script>
 (function(){
 'use strict';
@@ -1954,7 +1955,7 @@ function renderShop(){
   let h='';
   if(offerActive()){ const left=Math.max(0,STARTER.hours*3600e3-(Date.now()-offerTs)), hh=Math.floor(left/3600e3), mm=Math.floor(left%3600e3/60e3);
     h+='<div class="shop-s">Oferta de boas-vindas</div>'+row({hot:1,img:IMG_SRC.bstHammer,t:'Pacote do Gemmo',s:STARTER.coins+' moedas + '+STARTER.boost+' de cada impulsionador · acaba em '+hh+'h '+mm+'min',b:STARTER.price,a:'starter'}); }
-  h+='<div class="shop-s">Passe do Gemmo</div>'+row({f:'pass',img:IMG_SRC.starOn,t:'Passe do mês',s:'Chaves '+pass.k+'/30 · '+(pass.prem?'Premium ativo':'trilha grátis ativa')+(passClaimable()?' · '+passClaimable()+' para pegar':''),b:passClaimable()?'Pegar':'Ver',cls:passClaimable()?'':'ad',a:'pass'});
+  h+='<div class="shop-s">Passe do Gemmo</div>'+row({f:'pass',img:IMG_SRC.starOn,t:'Passe do mês',s:'Chaves '+pass.k+'/30 · '+(pass.prem?'Premium ativo':'trilha grátis ativa')+(passClaimable()?' · '+passClaimable()+' para pegar':''),b:passClaimable()?'Pegar':'Abrir',cls:passClaimable()?'':'ad',a:'pass'});
   if(piggy>0)h+='<div class="shop-s">Cofrinho</div>'+row({img:COIN,t:'Cofrinho do Gemmo',s:piggy+' moedas guardadas'+(piggy<PIG.min?' · quebra a partir de '+PIG.min:' · quebre agora'),b:PIG.price,cls:'gold',a:'piggy',dis:piggy<PIG.min});
   h+='<div class="shop-s">Vidas</div>';
   h+=row({f:'lives',img:IMG_SRC.heart,t:'Encher as vidas',s:'Volta para '+LIFE_MAX+' vidas',b:cb(COST.lives),cls:'gold',a:'lives'});
@@ -2798,7 +2799,7 @@ $('scrSplash').addEventListener('click',()=>{ensureAudio(); goMap(); setTimeout(
 $('scrSplash').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); ensureAudio(); goMap(); setTimeout(()=>showInstall(false),500);}});
 
 /* ---------- guia de instalação (primeiro acesso) ---------- */
-const APP_VER='v78';
+const APP_VER='v79';
 
 /* ---------- aviso de nova versão (evita ficar preso numa versão antiga em cache) ---------- */
 let updNew='';
@@ -2941,7 +2942,7 @@ const lvBucket=n=>{n=+n||0; const a=Math.floor((n-1)/10)*10+1; return a+'-'+(a+9
   wrap('ADS',()=>{ const f=ADS.rewarded; ADS.rewarded=function(cb){ track('/anuncio/pedido','Anúncio premiado',true); return f.apply(ADS,arguments); }; });
   window.addEventListener('appinstalled',()=>track('/app/instalou','App instalado',true));
 })();
-if(location.hash==='#debug')window.__gm={raceForce(v){raceForce=v;},openRace,showTut,musState(){return MUS.el?{paused:MUS.el.paused,t:MUS.el.currentTime,v:MUS.el.volume,err:MUS.el.error&&MUS.el.error.code}:null;},smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
+if(location.hash==='#debug')window.__gm={raceForce(v){raceForce=v;},openRace,showTut,musState(){return MUS.el?{paused:MUS.el.paused,t:MUS.el.currentTime,v:MUS.el.volume,err:MUS.el.error&&MUS.el.error.code}:null;},smpCount(){return Object.keys(SMP).length;},goMap,showDaily,openShop,showNoLives,showBanner,checkUpdate,showEpisodeDone,renderMap,show,setMax(n){maxLevel=n;},startConf,showTut,tutBuild,tutDraw,TUTS,runTuts,enterGame,pendTuts,tutSeenReset(){tutSeen={};},forceLose(){moves=0;busy=false;afterTurn();},forceWin(){goals.forEach(g=>{if(g.k==="score")score=Math.max(score,g.n*1.6);else g.got=g.n;});busy=false;afterTurn();},findGroups,buildSpec,SHAPES,startLevel,findMove,trySwap,get busy(){return busy;},get over(){return over;},get moves(){return moves;},get won(){return goalsDone();},get score(){return score;},get grid(){return grid;},get goals(){return goals;},get ice(){return ice;},get spec(){return spec;}};
 startLevel(maxLevel,false);
 requestAnimationFrame(frame);
 })();

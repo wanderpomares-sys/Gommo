@@ -39,3 +39,8 @@ Para o Artifact de arquivo único: `python3 build_artifact.py saida.html`.
 3. Só conta em gemmo.com.br. Testes e o Artifact não entram.
 Telas (Páginas): /tela/mapa, loja, passe, corrida, diario, sem-vidas, boas-vindas, backup.
 Eventos: /jogo/fase-iniciada, /jogo/faixa-1-10 (progresso), /jogo/vitoria, /jogo/derrota, /jogo/martelo, /anuncio/pedido, /loja/compra/ID, /tutorial/NOME, /app/instalou.
+
+## Idiomas (pt, en, es, de)
+- `i18n.js` traduz as strings na entrada do DOM e do canvas; o código do jogo continua em português. Idioma = escolha salva (botão 🌐 no mapa e na abertura) ou idioma do celular; fora dos 4, inglês.
+- Para adicionar/alterar textos: acrescentar `[pt, en, es, de]` no dicionário (fonte em i18n-src/, rode `python3 i18n-src/gen.py`) e subir `?v=` do i18n.js.
+- A prévia do WhatsApp/Google (meta tags) continua em português, pois os robôs não executam JavaScript.
