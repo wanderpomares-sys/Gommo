@@ -28,3 +28,4 @@ D3+=[
 RX=[
  [r'Jogar fase (\d+)','Play level $1','Jugar nivel $1','Level $1 spielen'],
 ]
+D3+=[['Privacidade','Privacy','Privacidad','Datenschutz']]

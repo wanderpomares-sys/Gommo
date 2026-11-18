@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import json,sys
-sys.path.insert(0,'/home/claude/work')
+sys.path.insert(0,'/home/claude/gommo/i18n-src')
 from dict1 import D1
 from dict2 import D2
 try:
